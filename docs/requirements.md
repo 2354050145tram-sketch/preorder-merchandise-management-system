@@ -328,67 +328,67 @@ BR-33: Hệ thống cung cấp báo cáo thống kê tháng, năm theo:
 
 # 9. Wireframes UI
 ### 9.1 UI About Me
-![UI About Me](docs/screenshots/SRS resources/about-me.png)
+![UI About Me](docs/screenshots/SRS%20resources/about-me.png)
 
 ### 9.2 UI Đăng nhập
-![UI Đăng nhập](docs/screenshots/SRS resources/dang-nhap.png)
+![UI Đăng nhập](docs/screenshots/SRS%20resources/dang-nhap.png)
 
 ### 9.3 UI Đăng ký
-![UI Đăng ký](docs/screenshots/SRS resources/dang-ky.png)
+![UI Đăng ký](docs/screenshots/SRS%20resources/dang-ky.png)
 
 ### 9.4 UI Quản lý sản phẩm
-![UI Quản lý sản phẩm](docs/screenshots/SRS resources/quan-ly-san-pham.png)
+![UI Quản lý sản phẩm](docs/screenshots/SRS%20resources/quan-ly-san-pham.png)
 
 ### 9.5 UI Quản lý Pre-order
-![UI Quản lý Pre-order](docs/screenshots/SRS resources/quan-ly-pre-order.png)
+![UI Quản lý Pre-order](docs/screenshots/SRS%20resources/quan-ly-pre-order.png)
 
 ### 9.6 UI Quản lý khách hàng
-![UI Quản lý khách hàng](docs/screenshots/SRS resources/quan-ly-khach-hang.png)
+![UI Quản lý khách hàng](docs/screenshots/SRS%20resources/quan-ly-khach-hang.png)
 
 ### 9.7 UI Quản lý đơn hàng
-![UI Quản lý đơn hàng](docs/screenshots/SRS resources/quan-ly-don-hang.png)
+![UI Quản lý đơn hàng](docs/screenshots/SRS%20resources/quan-ly-don-hang.png)
 
 ### 9.8 UI Quản lý tồn kho
-![UI Quản lý tồn kho](docs/screenshots/SRS resources/quan-ly-kho.png)
+![UI Quản lý tồn kho](docs/screenshots/SRS%20resources/quan-ly-kho.png)
 
 ### 9.9 UI Báo cáo
-![UI Báo cáo](docs/screenshots/SRS resources/bao-cao.png)
+![UI Báo cáo](docs/screenshots/SRS%20resources/bao-cao.png)
 
 ### 9.10 UI Thông tin cá nhân khách hàng
-![UI Thông tin cá nhân khách hàng](docs/screenshots/SRS resources/thong-tin-ca-nhan.png)
+![UI Thông tin cá nhân khách hàng](docs/screenshots/SRS%20resources/thong-tin-ca-nhan.png)
 
 ### 9.11 UI Trang chủ / Sản phẩm
-![UI Trang chủ / Sản phẩm](docs/screenshots/SRS resources/trang-san-pham.png)
+![UI Trang chủ / Sản phẩm](docs/screenshots/SRS%20resources/trang-san-pham.png)
 
 ### 9.12 UI Giỏ hàng
-![UI Giỏ hàng](docs/screenshots/SRS resources/gio-hang.png)
+![UI Giỏ hàng](docs/screenshots/SRS%20resources/gio-hang.png)
 
 ### 9.13 UI Thanh toán
-![UI Thanh toán](docs/screenshots/SRS resources/thanh-toan.png)
+![UI Thanh toán](docs/screenshots/SRS%20resources/thanh-toan.png)
 
 ### 9.14 UI Biên lai
-![UI Thanh toán](docs/screenshots/SRS resources/bien-lai.png)
+![UI Thanh toán](docs/screenshots/SRS%20resources/bien-lai.png)
 
 ### 9.15 UI Thêm sản phẩm
-![UI Thêm sản phẩm](docs/screenshots/SRS resources/them-san-pham.png)
+![UI Thêm sản phẩm](docs/screenshots/SRS%20resources/them-san-pham.png)
 
 ### 9.16 UI Chi tiết sản phẩm
-![UI Chi tiết sản phẩm](docs/screenshots/SRS resources/chi-tiet-san-pham.png)
+![UI Chi tiết sản phẩm](docs/screenshots/SRS%20resources/chi-tiet-san-pham.png)
 
 ### 9.17 UI Chi tiết khách hàng
-![UI Chi tiết khách hàng](docs/screenshots/SRS resources/chi-tiet-khach-hang.png)
+![UI Chi tiết khách hàng](docs/screenshots/SRS%20resources/chi-tiet-khach-hang.png)
 
 ### 9.18 UI Thêm Pre-order
-![UI Thêm Pre-order](docs/screenshots/SRS resources/them-pre-order.png)
+![UI Thêm Pre-order](docs/screenshots/SRS%20resources/them-pre-order.png)
 
 ### 9.19 UI Nhập hàng
-![UI Nhập hàng](docs/screenshots/SRS resources/nhap-hang.png)
+![UI Nhập hàng](docs/screenshots/SRS%20resources/nhap-hang.png)
 
 ### 9.20 UI Nạp Ví ảo
-![UI Nạp Ví ảo](docs/screenshots/SRS resources/nap-vi-ao.png)
+![UI Nạp Ví ảo](docs/screenshots/SRS%20resources/nap-vi-ao.png)
 
 ### 9.21 UI Rút Ví ảo
-![UI Rút Ví ảo](docs/screenshots/SRS resources/rut-vi-ao.png)
+![UI Rút Ví ảo](docs/screenshots/SRS%20resources/rut-vi-ao.png)
 
 ### 9.22 UI Lịch sử giao dịch
-![UI Lịch sử giao dịch](docs/screenshots/SRS resources/lich-su-giao-dich.png)
+![UI Lịch sử giao dịch](docs/screenshots/SRS%20resources/lich-su-giao-dich.png)
