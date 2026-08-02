@@ -12,11 +12,20 @@ class Product(BaseModel):
     image = Column(String(255), nullable=False)
     status = Column(Enum("PREORDER", "IN_STOCK"), nullable=False)
 
+    order_items = db.relationship("OrderItem", back_populates="product")
+    inventories = db.relationship("Inventory", back_populates="product", cascade="all, delete-orphan")
+
+    def __str__(self):
+        return self.product_name
+
 class Tag(BaseModel):
     __tablename__ = "tags"
 
     tag_id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 class ProductTag(db.Model):
     __tablename__ = "product_tags"
