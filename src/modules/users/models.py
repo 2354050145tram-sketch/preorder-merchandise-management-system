@@ -11,6 +11,10 @@ class Role(BaseModel):
 
     users = db.relationship("User", back_populates="role")
 
+    def __str__(self):
+        return self.name
+
+
 class User(BaseModel):
     __tablename__="users"
 
@@ -23,8 +27,13 @@ class User(BaseModel):
     role_id = Column(Integer, ForeignKey("roles.role_id"), nullable=False)
 
     role = db.relationship("Role", back_populates="users")
+    profile = db.relationship("Profile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    orders = db.relationship("Order", back_populates="user")
+    wallet = db.relationship("Wallet", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    user_notifications = db.relationship("UserNotification", back_populates="user", cascade="all, delete-orphan")
 
-    role = db.relationship("Profile", back_populates="users", uselist=False, cascade="all, delete-orphan")
+    def __str__(self):
+        return self.username
 
 class Profile(db.Model):
     __tablename__ = "profiles"
