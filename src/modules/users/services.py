@@ -7,11 +7,11 @@ from modules.users.models import User, Profile
 class UserService:
 
     @staticmethod
-    def register(email, username, password, full_name, phone_num, address):
+    def register(email, username, password, confirm_password, full_name, phone_num, address):
         email = email.strip()
         username = username.strip()
 
-        if not all([email, username, password, full_name, phone_num, address]):
+        if not all([email, username, password, confirm_password, full_name, phone_num, address]):
             raise ValueError("Thông tin không được để trống")
 
         EMAIL_REGEX = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
@@ -27,19 +27,27 @@ class UserService:
         PASSWORD_REGEX = r'^(?=.*[A-Za-z])(?=.*\d).{8,}$'
 
         if not re.match(PASSWORD_REGEX, password):
-            raise ValueError(
-                "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ và số"
-            )
+            raise ValueError("Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ và số")
+        if password != confirm_password:
+            raise ValueError("Mật khẩu xác nhận không khớp")
 
-        existing_user = User.query.filter_by(email=email).first()
+        existing_username = User.query.filter_by(username=username).first()
+        if existing_username:
+            raise ValueError("Tên đăng nhập đã tồn tại")
 
-        if existing_user:
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
             raise ValueError("Email đã tồn tại")
+
+        existing_phone = Profile.query.filter_by(phone_num=phone_num).first()
+        if existing_phone:
+            raise ValueError("Số điện thoại đã tồn tại")
 
         user = User(
             email=email,
             username=username,
             password=generate_password_hash(password),
+            provider="LOCAL",
             role_id=1
         )
 
@@ -50,9 +58,9 @@ class UserService:
 
             profile = Profile(
                 user_id=user.user_id,
-                full_name=full_name,
-                phone_num=phone_num,
-                address=address
+                full_name=full_name.strip(),
+                phone_num=phone_num.strp(),
+                address=address.strip()
             )
 
             db.session.add(profile)
@@ -60,9 +68,9 @@ class UserService:
 
             return user
         
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            raise e
+            raise
 
     @staticmethod
     def login(login, password):
@@ -118,9 +126,9 @@ class UserService:
         try:
             db.session.commit()
             return profile
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            raise e
+            raise
 
     @staticmethod
     def delete_user(user_id):
@@ -128,9 +136,25 @@ class UserService:
         if not user:
             raise ValueError("User không tồn tại")
 
+        user.active = False
+
         try:
-            db.session.delete(user)
             db.session.commit()
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            raise e
+            raise
+
+    @staticmethod
+    def lock_user(user_id):
+        user = User.query.get(user_id)
+
+        if not user:
+            raise ValueError("User không tồn tại")
+
+        user.active = False
+
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
