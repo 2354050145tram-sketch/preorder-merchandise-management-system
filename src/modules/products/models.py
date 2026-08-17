@@ -14,6 +14,7 @@ class Product(BaseModel):
 
     order_items = db.relationship("OrderItem", back_populates="product")
     inventories = db.relationship("Inventory", back_populates="product", cascade="all, delete-orphan")
+    preorders = db.relationship("PreOrder", back_populates="product")
 
     def __str__(self):
         return self.product_name

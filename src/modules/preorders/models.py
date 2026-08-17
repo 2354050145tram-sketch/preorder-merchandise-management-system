@@ -2,6 +2,7 @@ from sqlalchemy import Integer, Column, String, Enum, ForeignKey, Date
 from config import db
 from modules.base_model import BaseModel
 
+
 class PreOrder(BaseModel):
     __tablename__ = "preorders"
 
@@ -9,12 +10,25 @@ class PreOrder(BaseModel):
     product_id = Column(Integer, ForeignKey("products.product_id"), nullable=False)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
-    quantity_order = Column(Integer, nullable=False)
-    progress_status = Column(Enum("MỞ PREORDER", "ĐÃ ĐẶT HÀNG", "ĐANG SẢN XUẤT", "ĐÃ VỀ KHO TRUNG QUỐC", "ĐÃ VỀ KHO VIỆT NAM", "ĐANG GÓI HÀNG", "ĐÃ VẬN CHUYỂN", "HOÀN THÀNH"), nullable=False)
+    quantity_order = Column(Integer, nullable=False, default=0)
+    progress_status = Column(
+        Enum(
+            "MỞ PREORDER",
+            "ĐÃ ĐẶT HÀNG",
+            "ĐANG SẢN XUẤT",
+            "ĐÃ VỀ KHO TRUNG QUỐC",
+            "ĐÃ VỀ KHO VIỆT NAM",
+            "ĐANG GÓI HÀNG",
+            "ĐÃ VẬN CHUYỂN",
+            "HOÀN THÀNH",
+        ),
+        nullable=False,
+    )
     progress_note = Column(String(255), nullable=False)
 
     order_items = db.relationship("OrderItem", back_populates="preorder")
     notifications = db.relationship("Notification", back_populates="preorder")
+    product = db.relationship("Product", back_populates="preorders")
 
     def __str__(self):
-        return self.name
+        return f"PreOrder #{self.preorder_id}"

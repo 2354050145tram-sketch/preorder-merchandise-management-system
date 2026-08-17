@@ -7,9 +7,9 @@ class ProductService:
 
     @staticmethod
     def create_product(product_name, price, description, image, status, tag_ids = None):
-        product_name = product_name.strip()
-        description = description.strip()
-        image = image.strip()
+        product_name = product_name.strip() if product_name else ""
+        description = description.strip() if description else ""
+        image = image.strip() if image else ""
 
         # Kiểm tra dữ liệu bắt buộc
         if not all([product_name, price, description, image, status]):
@@ -29,9 +29,7 @@ class ProductService:
             raise ValueError("Trạng thái sản phẩm không hợp lệ")
 
         # Kiểm tra tên sản phẩm trùng
-        stmt = select(Product).where(
-            Product.product_name == product_name
-        )
+        stmt = select(Product).where(Product.product_name == product_name)
 
         existing_product = db.session.scalar(stmt)
 
@@ -89,9 +87,7 @@ class ProductService:
 
         # Active
         if active is not None:
-            stmt = stmt.where(
-                Product.active == active
-            )
+            stmt = stmt.where(Product.active == active)
 
         # Tìm kiếm theo tên
         if keyword and keyword.strip():
@@ -106,12 +102,50 @@ class ProductService:
 
             stmt = stmt.where(Product.status == status)
 
-        # Lọc theo giá tiền
         if min_price is not None:
-            stmt = stmt.where(Product.price >= min_price)
+            try:
+                min_price = Decimal(str(min_price))
+            except (InvalidOperation, TypeError, ValueError):
+                raise ValueError(
+                    "Giá tối thiểu không hợp lệ"
+                )
+
+            if not min_price.is_finite() or min_price < 0:
+                raise ValueError(
+                    "Giá tối thiểu không hợp lệ"
+                )
 
         if max_price is not None:
-            stmt = stmt.where(Product.price <= max_price) 
+            try:
+                max_price = Decimal(str(max_price))
+            except (InvalidOperation, TypeError, ValueError):
+                raise ValueError(
+                    "Giá tối đa không hợp lệ"
+                )
+
+            if not max_price.is_finite() or max_price < 0:
+                raise ValueError(
+                    "Giá tối đa không hợp lệ"
+                )
+
+        if (
+            min_price is not None
+            and max_price is not None
+            and min_price > max_price
+        ):
+            raise ValueError(
+                "Khoảng giá không hợp lệ"
+            )
+            
+        if min_price is not None:
+            stmt = stmt.where(
+                Product.price >= min_price
+            )
+
+        if max_price is not None:
+            stmt = stmt.where(
+                Product.price <= max_price
+            )
 
         # Lọc theo thẻ
         if tag_ids:
@@ -120,18 +154,28 @@ class ProductService:
         return (db.session.scalars(stmt).unique().all())
 
     @staticmethod
-    def get_product_by_id(product_id):
-        product = db.session.get(Product, product_id)
+    def get_product_by_id(product_id, active=None):
+        product = db.session.get(
+            Product,
+            product_id
+        )
 
-        if not product or not product.active:
-            raise ValueError("Sản phẩm không tồn tại")
+        if not product:
+            raise ValueError(
+                "Sản phẩm không tồn tại"
+            )
+
+        if active is not None and product.active != active:
+            raise ValueError(
+                "Sản phẩm không tồn tại"
+            )
 
         return product
 
     @staticmethod
     def update_product(product_id, data, tag_ids=None):
 
-        product = ProductService.get_product_by_id(product_id)
+        product = ProductService.get_product_by_id(product_id, active=True)
 
         # Cập nhật tên sản phẩm
         if "product_name" in data and data["product_name"]:
@@ -231,7 +275,7 @@ class ProductService:
 
     @staticmethod
     def delete_product(product_id):
-        product = ProductService.get_product_by_id(product_id)
+        product = ProductService.get_product_by_id(product_id, active=True)
 
         product.active = False
 
@@ -268,7 +312,7 @@ class ProductService:
         except Exception:
             db.session.rollback()
             raise
-        
+
     @staticmethod
     def get_all_tags():
         stmt = select(Tag).where(Tag.active.is_(True))
