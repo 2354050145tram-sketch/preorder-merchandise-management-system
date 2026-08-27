@@ -1,25 +1,96 @@
+from config import db
+from sqlalchemy import select
+from utils.email import send_email
+from modules.notifications.models import Notification, UserNotification
+from modules.users.models import User
+from modules.preorders.models import PreOrder
+from modules.orders.models import Order, OrderItem
+
+
 class NotificationService:
 
     @staticmethod
-    def create_notification( ):
-        pass
+    def send_preorder_notification(preorder_id, title, message):
+        preorder = db.session.get(PreOrder, preorder_id)
+
+        if not preorder:
+            raise ValueError("Đợt preorder không tồn tại")
+
+        title = title.strip() if title else ""
+        message = message.strip() if message else ""
+
+        if not title or not message:
+            raise ValueError("Thông tin thông báo không được để trống")
+
+        # Lấy khách hàng có sản phẩm thuộc preorder
+        stmt = (
+            select(User)
+            .join(Order, User.user_id == Order.user_id)
+            .join(OrderItem, Order.order_id == OrderItem.order_id)
+            .where(
+                OrderItem.preorder_id == preorder_id,
+                OrderItem.item_status != "ĐÃ HỦY",
+                User.active.is_(True),
+            )
+            .distinct()
+        )
+
+        users = db.session.scalars(stmt).all()
+
+        # Chưa có khách đặt preorder thì không cần gửi
+        if not users:
+            return None
+
+        notification = Notification(
+            preorder_id=preorder_id, title=title, message=message
+        )
+
+        try:
+            db.session.add(notification)
+            db.session.flush()
+
+            for user in users:
+                user_notification = UserNotification(
+                    user_id=user.user_id, notification_id=(notification.notification_id)
+                )
+
+                db.session.add(user_notification)
+
+            db.session.commit()
+
+        except Exception:
+            db.session.rollback()
+            raise
+
+        # Sau khi lưu notification thành công
+        # mới gửi Gmail
+        for user in users:
+            try:
+                send_email(recipient=user.email, subject=title, body=message)
+
+            except Exception as error:
+                print(f"Không thể gửi email cho " f"{user.email}: {error}")
+
+        return notification
 
     @staticmethod
-    def send_to_user( ):
-        pass
+    def get_user_notifications(user_id):
 
-    @staticmethod
-    def send_to_users( ):
-        pass
+        user = db.session.get(User, user_id)
 
-    @staticmethod
-    def send_preorder_notification( ):
-        pass
+        if not user or not user.active:
+            raise ValueError("User không tồn tại")
 
-    @staticmethod
-    def get_user_notifications( ):
-        pass
+        stmt = (
+            select(Notification)
+            .join(
+                UserNotification,
+                Notification.notification_id == UserNotification.notification_id,
+            )
+            .where(
+                UserNotification.user_id == user_id,
+            )
+            .order_by(UserNotification.send_at.desc())
+        )
 
-    @staticmethod
-    def delete_notification( ):
-        pass
+        return db.session.scalars(stmt).all()
