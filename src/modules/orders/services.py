@@ -1,12 +1,14 @@
 from config import db
 from decimal import Decimal
 from datetime import date, datetime, timezone
-from sqlalchemy import select
+from sqlalchemy import select, func
+from sqlalchemy.orm import joinedload
 from modules.orders.models import Order, OrderItem, Payment
 from modules.users.models import User
 from modules.products.models import Product
 from modules.preorders.models import PreOrder
 from modules.inventories.models import Inventory, InventoryTransaction
+from modules.wallets.services import WalletService
 
 
 class OrderService:
@@ -18,7 +20,6 @@ class OrderService:
         if not user or not user.active:
             raise ValueError("Người dùng không tồn tại")
 
-        # Kiểm tra giỏ hàng
         if not items:
             raise ValueError("Vui lòng chọn sản phẩm cần đặt hàng")
 
@@ -26,7 +27,6 @@ class OrderService:
         order_items_data = []
         seen_items = set()
 
-        # Kiểm tra sản phẩm
         for item in items:
 
             product_id = item.get("product_id")
@@ -56,7 +56,6 @@ class OrderService:
             if not product or not product.active:
                 raise ValueError("Sản phẩm không tồn tại")
 
-            # Khách đang mua theo đợt PREORDER
             if preorder_id is not None:
                 preorder = db.session.get(PreOrder, preorder_id)
 
@@ -74,7 +73,9 @@ class OrderService:
                         f"{product.product_name} " "hiện không có đợt preorder"
                     )
 
-            # Hàng có sẵn
+            if item["preorder_id"] is not None:
+                pass
+
             else:
                 if product.status == "PREORDER":
                     raise ValueError(
@@ -93,7 +94,6 @@ class OrderService:
                 if inventory.quantity < quantity:
                     raise ValueError("Sản phẩm không đủ số lượng")
 
-            # Tính tiền hàng
             item_total = product.price * quantity
 
             total_amount += item_total
@@ -119,7 +119,6 @@ class OrderService:
             db.session.add(order)
             db.session.flush()
 
-            # Tạo order item
             for item in order_items_data:
 
                 order_item = OrderItem(
@@ -132,14 +131,7 @@ class OrderService:
 
                 db.session.add(order_item)
 
-                # Tăng số lượng preorder
-                if item["preorder_id"]:
-                    preorder = db.session.get(PreOrder, item["preorder_id"])
-
-                    preorder.quantity_order += item["quantity"]
-
-                # Giảm số lượng hàng sẵn
-                else:
+                if item["preorder_id"] is None:
                     stmt = select(Inventory).where(
                         Inventory.product_id == item["product_id"]
                     )
@@ -167,36 +159,33 @@ class OrderService:
 
     @staticmethod
     def get_all_orders(keyword=None, order_status=None, active=True):
-        stmt = select(Order).join(User, Order.user_id == User.user_id)
+        stmt = select(Order).options(joinedload(Order.user))
 
         if active is not None:
             stmt = stmt.where(Order.active == active)
 
-        # Tìm theo username hoặc email
         if keyword and keyword.strip():
-            keyword = keyword.strip()
+            kw = keyword.strip()
+            # Cho phép tìm kiếm cả theo Mã đơn (nếu gõ số) hoặc username/email
+            if kw.isdigit():
+                stmt = stmt.join(User, Order.user_id == User.user_id).where(
+                    (Order.order_id == int(kw))
+                    | (User.username.ilike(f"%{kw}%"))
+                    | (User.email.ilike(f"%{kw}%"))
+                )
+            else:
+                stmt = stmt.join(User, Order.user_id == User.user_id).where(
+                    (User.username.ilike(f"%{kw}%")) | (User.email.ilike(f"%{kw}%"))
+                )
+        else:
+            stmt = stmt.join(User, Order.user_id == User.user_id)
 
-            stmt = stmt.where(
-                (User.username.ilike(f"%{keyword}%"))
-                | (User.email.ilike(f"%{keyword}%"))
-            )
-
-        # Lọc trạng thái đơn hàng
         if order_status:
-            valid_statuses = [
-                "CHỜ XÁC NHẬN",
-                "ĐÃ XÁC NHẬN",
-                "ĐANG XỬ LÝ",
-                "HOÀN THÀNH",
-                "ĐÃ HỦY",
-            ]
-
-            if order_status not in valid_statuses:
-                raise ValueError("Trạng thái đơn hàng không hợp lệ")
-
             stmt = stmt.where(Order.order_status == order_status)
 
-        return db.session.scalars(stmt).all()
+        stmt = stmt.order_by(Order.order_id.desc())
+
+        return db.session.scalars(stmt).unique().all()
 
     @staticmethod
     def get_order_by_id(order_id):
@@ -224,34 +213,16 @@ class OrderService:
             raise ValueError("Đơn hàng đã hoàn thành")
 
         allowed_transitions = {
-            "ĐÃ XÁC NHẬN": ["ĐANG XỬ LÝ"],
-            "ĐANG XỬ LÝ": ["HOÀN THÀNH"],
+            "CHỜ XÁC NHẬN": ["ĐÃ XÁC NHẬN", "ĐÃ HỦY"],
+            "ĐÃ ĐẶT CỌC": ["ĐANG XỬ LÝ", "ĐÃ XÁC NHẬN", "ĐÃ HỦY"],
+            "ĐÃ XÁC NHẬN": ["ĐANG XỬ LÝ", "ĐÃ HỦY"],
+            "ĐANG XỬ LÝ": ["HOÀN THÀNH", "ĐÃ HỦY"],
         }
 
         allowed_statuses = allowed_transitions.get(order.order_status, [])
 
         if order_status not in allowed_statuses:
             raise ValueError("Không thể chuyển sang trạng thái đơn hàng này")
-
-        if order_status == "HOÀN THÀNH":
-            unfinished_items = [
-                item
-                for item in order.order_items
-                if item.item_status not in ["HOÀN THÀNH", "ĐÃ HỦY"]
-            ]
-
-            if unfinished_items:
-                raise ValueError("Đơn hàng vẫn còn sản phẩm chưa hoàn thành")
-
-        order.order_status = order_status
-
-        try:
-            db.session.commit()
-            return order
-
-        except Exception:
-            db.session.rollback()
-            raise
 
     @staticmethod
     def update_shipping_info(
@@ -309,7 +280,6 @@ class OrderService:
 
                 item.shipping_status = "ĐANG LẤY HÀNG"
 
-            # Cộng phí ship đúng 1 lần
             order.shipping_fee += shipping_fee
 
             db.session.commit()
@@ -334,7 +304,6 @@ class OrderService:
         if not order_items:
             raise ValueError("Mã vận đơn không tồn tại")
 
-        # Chặn cập nhật lùi trạng thái
         status_order = {"ĐANG LẤY HÀNG": 1, "ĐANG GIAO HÀNG": 2, "ĐÃ GIAO": 3}
 
         for item in order_items:
@@ -363,7 +332,10 @@ class OrderService:
 
     @staticmethod
     def cancel_order_item(order_item_id):
-        order_item = db.session.get(OrderItem, order_item_id)
+        order_item = db.session.get(
+            OrderItem,
+            order_item_id,
+        )
 
         if not order_item:
             raise ValueError("Sản phẩm trong đơn hàng không tồn tại")
@@ -376,12 +348,13 @@ class OrderService:
         if order_item.item_status == "ĐÃ HỦY":
             raise ValueError("Sản phẩm đã được hủy")
 
-        if order_item.shipping_status in ["ĐANG GIAO HÀNG", "ĐÃ GIAO"]:
+        if order_item.shipping_status in [
+            "ĐANG GIAO HÀNG",
+            "ĐÃ GIAO",
+        ]:
             raise ValueError("Sản phẩm đã được vận chuyển, không thể hủy")
 
-        # PREORDER đã thanh toán thì không được hủy
         if order_item.preorder_id is not None:
-
             paid_payment = db.session.scalar(
                 select(Payment).where(
                     Payment.order_id == order.order_id,
@@ -390,48 +363,32 @@ class OrderService:
             )
 
             if paid_payment:
-                raise ValueError("Sản phẩm preorder đã thanh toán không được hủy")
-
-        try:
-            # PREORDER chưa thanh toán
-            if order_item.preorder_id is not None:
-
-                preorder = db.session.get(PreOrder, order_item.preorder_id)
-
-                if preorder:
-                    preorder.quantity_order -= order_item.quantity
-
-                    if preorder.quantity_order < 0:
-                        preorder.quantity_order = 0
-
-            # IN_STOCK
-            else:
-                stmt = select(Inventory).where(
-                    Inventory.product_id == order_item.product_id
+                raise ValueError(
+                    "Sản phẩm preorder đã thanh toán " "hoặc đặt cọc không được hủy"
                 )
 
-                inventory = db.session.scalar(stmt)
+        try:
+            if order_item.preorder_id is None:
+                inventory = db.session.scalar(
+                    select(Inventory).where(
+                        Inventory.product_id == order_item.product_id,
+                        Inventory.active.is_(True),
+                    )
+                )
 
                 if not inventory:
                     raise ValueError("Không tìm thấy tồn kho sản phẩm")
 
                 inventory.quantity += order_item.quantity
 
-                inventory_transaction = InventoryTransaction(
+                transaction = InventoryTransaction(
                     inventory_id=inventory.inventory_id,
                     transaction_type="HOÀN KHO",
                     quantity=order_item.quantity,
                     price=None,
                 )
 
-                db.session.add(inventory_transaction)
-
-                # Nếu đang ở giai đoạn lấy hàng thì vẫn được hủy
-            # và loại item khỏi vận đơn hiện tại
-            if order_item.shipping_status == "ĐANG LẤY HÀNG":
-                order_item.shipping_method = None
-                order_item.tracking_code = None
-                order_item.shipping_status = None
+                db.session.add(transaction)
 
             order_item.item_status = "ĐÃ HỦY"
 
@@ -454,7 +411,137 @@ class OrderService:
 class PaymentService:
 
     @staticmethod
-    def create_payment(order_id, amount, payment_method, transaction_id=None):
+    def has_previous_paid_order(
+        user_id,
+        exclude_order_id=None,
+    ):
+        stmt = select(Order.order_id).where(
+            Order.user_id == user_id,
+            Order.active.is_(True),
+            Order.order_status.in_(
+                [
+                    "ĐÃ XÁC NHẬN",
+                    "ĐANG XỬ LÝ",
+                    "HOÀN THÀNH",
+                ]
+            ),
+        )
+
+        if exclude_order_id is not None:
+            stmt = stmt.where(Order.order_id != exclude_order_id)
+
+        return db.session.scalar(stmt) is not None
+
+    @staticmethod
+    def get_order_payment_summary(order_id):
+        order = OrderService.get_order_by_id(order_id)
+
+        preorder_amount = Decimal("0")
+        in_stock_amount = Decimal("0")
+
+        for item in order.order_items:
+            if item.item_status == "ĐÃ HỦY":
+                continue
+
+            item_amount = Decimal(str(item.price)) * Decimal(str(item.quantity))
+
+            if item.preorder_id is not None:
+                preorder_amount += item_amount
+            else:
+                in_stock_amount += item_amount
+
+        shipping_fee = Decimal(str(order.shipping_fee or 0))
+
+        total_amount = preorder_amount + in_stock_amount + shipping_fee
+
+        paid_stmt = select(
+            func.coalesce(
+                func.sum(Payment.amount),
+                0,
+            )
+        ).where(
+            Payment.order_id == order_id,
+            Payment.payment_status.in_(
+                [
+                    "ĐÃ THANH TOÁN",
+                    "ĐÃ HOÀN TIỀN",
+                ]
+            ),
+        )
+
+        total_paid = Decimal(str(db.session.scalar(paid_stmt)))
+
+        remaining_amount = total_amount - total_paid
+
+        if remaining_amount < 0:
+            remaining_amount = Decimal("0")
+
+        eligible_for_deposit = (
+            preorder_amount > 0
+            and PaymentService.has_previous_paid_order(
+                user_id=order.user_id,
+                exclude_order_id=order.order_id,
+            )
+        )
+
+        return {
+            "order": order,
+            "preorder_amount": preorder_amount,
+            "in_stock_amount": in_stock_amount,
+            "shipping_fee": shipping_fee,
+            "total_amount": total_amount,
+            "total_paid": total_paid,
+            "remaining_amount": remaining_amount,
+            "eligible_for_deposit": eligible_for_deposit,
+        }
+
+    @staticmethod
+    def calculate_payment_amount(
+        order_id,
+        payment_type,
+    ):
+        valid_types = [
+            "THANH TOÁN FULL",
+            "ĐẶT CỌC",
+            "THANH TOÁN CÒN LẠI",
+        ]
+
+        if payment_type not in valid_types:
+            raise ValueError("Loại thanh toán không hợp lệ")
+
+        summary = PaymentService.get_order_payment_summary(order_id)
+
+        if summary["remaining_amount"] <= 0:
+            raise ValueError("Đơn hàng đã được thanh toán đầy đủ")
+
+        if payment_type == "THANH TOÁN FULL":
+            return summary["remaining_amount"]
+
+        if payment_type == "ĐẶT CỌC":
+            if not summary["eligible_for_deposit"]:
+                raise ValueError("Khách hàng chưa đủ điều kiện " "cọc 70%")
+
+            if summary["total_paid"] > 0:
+                raise ValueError("Đơn hàng đã phát sinh thanh toán")
+
+            return (
+                summary["in_stock_amount"]
+                + summary["shipping_fee"]
+                + (summary["preorder_amount"] * Decimal("0.70"))
+            )
+
+        if summary["total_paid"] <= 0:
+            raise ValueError("Đơn hàng chưa có khoản cọc")
+
+        return summary["remaining_amount"]
+
+    @staticmethod
+    def create_payment(
+        order_id,
+        payment_method,
+        payment_type,
+        transaction_id=None,
+    ):
         order = OrderService.get_order_by_id(order_id)
 
         if order.order_status == "ĐÃ HỦY":
@@ -463,18 +550,8 @@ class PaymentService:
         if order.order_status == "HOÀN THÀNH":
             raise ValueError("Đơn hàng đã hoàn thành")
 
-        try:
-            amount = Decimal(str(amount))
-        except Exception:
-            raise ValueError("Số tiền thanh toán không hợp lệ")
-
-        if amount <= 0:
-            raise ValueError("Số tiền thanh toán phải lớn hơn 0")
-
-        expected_amount = order.total_amount
-
-        if amount != expected_amount:
-            raise ValueError("Số tiền thanh toán không đúng với giá trị đơn hàng")
+        if payment_method != "MOMO":
+            raise ValueError("Phương thức thanh toán không hợp lệ")
 
         transaction_id = (
             str(transaction_id).strip() if transaction_id is not None else ""
@@ -490,20 +567,6 @@ class PaymentService:
         if existing_transaction:
             raise ValueError("Mã giao dịch đã tồn tại")
 
-        if payment_method not in ["MOMO", "VÍ VERD"]:
-            raise ValueError("Phương thức thanh toán không hợp lệ")
-
-        # Không cho tạo thêm payment nếu đã thanh toán
-        paid_payment = db.session.scalar(
-            select(Payment).where(
-                Payment.order_id == order_id, Payment.payment_status == "ĐÃ THANH TOÁN"
-            )
-        )
-
-        if paid_payment:
-            raise ValueError("Đơn hàng đã được thanh toán")
-
-        # Không cho có nhiều giao dịch đang chờ cùng lúc
         pending_payment = db.session.scalar(
             select(Payment).where(
                 Payment.order_id == order_id,
@@ -512,12 +575,18 @@ class PaymentService:
         )
 
         if pending_payment:
-            raise ValueError("Đơn hàng đang có giao dịch thanh toán chưa hoàn tất")
+            raise ValueError("Đơn hàng đang có giao dịch " "thanh toán chưa hoàn tất")
+
+        amount = PaymentService.calculate_payment_amount(
+            order_id=order_id,
+            payment_type=payment_type,
+        )
 
         payment = Payment(
             order_id=order_id,
             amount=amount,
             payment_method=payment_method,
+            payment_type=payment_type,
             payment_status="ĐANG THANH TOÁN",
             transaction_id=transaction_id,
         )
@@ -541,36 +610,95 @@ class PaymentService:
         return db.session.scalars(stmt).all()
 
     @staticmethod
-    def confirm_payment(payment_id):
-        payment = db.session.get(Payment, payment_id)
-
+    def apply_successful_payment(payment):
         if not payment:
             raise ValueError("Thanh toán không tồn tại")
 
         if payment.payment_status == "ĐÃ THANH TOÁN":
             raise ValueError("Thanh toán đã được xác nhận")
 
-        if payment.payment_status in ["ĐÃ HỦY", "ĐÃ HOÀN TIỀN"]:
+        if payment.payment_status in [
+            "ĐÃ HỦY",
+            "ĐÃ HOÀN TIỀN",
+        ]:
             raise ValueError("Không thể xác nhận giao dịch này")
 
         order = OrderService.get_order_by_id(payment.order_id)
 
         if order.order_status == "ĐÃ HỦY":
-            raise ValueError("Không thể xác nhận thanh toán cho đơn hàng đã hủy")
+            raise ValueError("Không thể xác nhận thanh toán " "cho đơn hàng đã hủy")
 
         if order.order_status == "HOÀN THÀNH":
             raise ValueError("Đơn hàng đã hoàn thành")
 
-        if order.order_status != "CHỜ XÁC NHẬN":
-            raise ValueError("Đơn hàng không ở trạng thái chờ xác nhận")
+        previous_paid_stmt = select(Payment.payment_id).where(
+            Payment.order_id == order.order_id,
+            Payment.payment_status.in_(
+                [
+                    "ĐÃ THANH TOÁN",
+                    "ĐÃ HOÀN TIỀN",
+                ]
+            ),
+            Payment.payment_id != payment.payment_id,
+        )
+
+        had_previous_payment = db.session.scalar(previous_paid_stmt) is not None
 
         payment.payment_status = "ĐÃ THANH TOÁN"
+
         payment.paid_at = datetime.now(timezone.utc)
 
-        order.order_status = "ĐÃ XÁC NHẬN"
+        if not had_previous_payment:
+            for item in order.order_items:
+                if item.preorder_id is not None and item.item_status != "ĐÃ HỦY":
+                    preorder = db.session.get(
+                        PreOrder,
+                        item.preorder_id,
+                    )
+
+                    if preorder:
+                        preorder.quantity_order += item.quantity
+
+        db.session.flush()
+
+        paid_stmt = select(
+            func.coalesce(
+                func.sum(Payment.amount),
+                0,
+            )
+        ).where(
+            Payment.order_id == order.order_id,
+            Payment.payment_status.in_(
+                [
+                    "ĐÃ THANH TOÁN",
+                    "ĐÃ HOÀN TIỀN",
+                ]
+            ),
+        )
+
+        total_paid = Decimal(str(db.session.scalar(paid_stmt)))
+
+        required_amount = Decimal(str(order.total_amount)) + Decimal(
+            str(order.shipping_fee or 0)
+        )
+
+        if total_paid >= required_amount:
+            order.order_status = "ĐÃ XÁC NHẬN"
+
+        elif total_paid > 0:
+            order.order_status = "ĐÃ ĐẶT CỌC"
+
+        return payment
+
+    @staticmethod
+    def confirm_payment(payment_id):
+        payment = db.session.get(Payment, payment_id)
 
         try:
+            PaymentService.apply_successful_payment(payment)
+
             db.session.commit()
+
             return payment
 
         except Exception:
@@ -585,7 +713,7 @@ class PaymentService:
             raise ValueError("Thanh toán không tồn tại")
 
         if payment.payment_status == "ĐÃ THANH TOÁN":
-            raise ValueError("Không thể hủy thanh toán đã thành công")
+            raise ValueError("Không thể hủy thanh toán " "đã thành công")
 
         if payment.payment_status == "ĐÃ HỦY":
             raise ValueError("Thanh toán đã được hủy")
@@ -597,6 +725,7 @@ class PaymentService:
 
         try:
             db.session.commit()
+
             return payment
 
         except Exception:
@@ -605,16 +734,18 @@ class PaymentService:
 
     @staticmethod
     def refund_order_item(order_item_id):
-        order_item = db.session.get(OrderItem, order_item_id)
+        order_item = db.session.get(
+            OrderItem,
+            order_item_id,
+        )
 
         if not order_item:
-            raise ValueError("Sản phẩm trong đơn hàng không tồn tại")
+            raise ValueError("Sản phẩm trong đơn hàng " "không tồn tại")
 
         order = OrderService.get_order_by_id(order_item.order_id)
 
-        # PREORDER không được hoàn sau khi đã thanh toán
         if order_item.preorder_id is not None:
-            raise ValueError("Sản phẩm preorder đã thanh toán không được hoàn tiền")
+            raise ValueError("Sản phẩm preorder đã thanh toán " "không được hoàn tiền")
 
         paid_payment = db.session.scalar(
             select(Payment).where(
@@ -624,12 +755,14 @@ class PaymentService:
         )
 
         if not paid_payment:
-            raise ValueError("Đơn hàng chưa có thanh toán thành công")
+            raise ValueError("Đơn hàng chưa có thanh toán " "thành công")
 
         if order_item.item_status != "ĐÃ HỦY":
-            raise ValueError("Chỉ hoàn tiền cho sản phẩm đã hủy")
+            raise ValueError("Chỉ hoàn tiền cho sản phẩm " "đã hủy")
 
-        refund_amount = order_item.price * order_item.quantity
+        refund_amount = Decimal(str(order_item.price)) * Decimal(
+            str(order_item.quantity)
+        )
 
         return {
             "user_id": order.user_id,
@@ -637,3 +770,42 @@ class PaymentService:
             "order_item_id": order_item.order_item_id,
             "amount": refund_amount,
         }
+
+    @staticmethod
+    def get_preorder_customers_by_product(product_id):
+        # Truy vấn danh sách order chứa order_item có product_id tương ứng và là hàng preorder
+        stmt = (
+            select(
+                Order.order_id,
+                User.username,
+                OrderItem.quantity,
+                (OrderItem.price * OrderItem.quantity).label("total_amount"),
+                Order.order_status,
+                Order.order_date.label("created_at"),
+            )
+            .join(User, Order.user_id == User.user_id)
+            .join(OrderItem, Order.order_id == OrderItem.order_id)
+            .where(
+                OrderItem.product_id == product_id,
+                OrderItem.preorder_id.is_not(None),
+                OrderItem.item_status != "ĐÃ HỦY",
+                Order.active.is_(True),
+            )
+            .order_by(Order.order_id.desc())
+        )
+
+        results = db.session.execute(stmt).all()
+
+        customers = []
+        for r in results:
+            customers.append(
+                {
+                    "order_id": r.order_id,
+                    "username": r.username,
+                    "quantity": r.quantity,
+                    "total_amount": float(r.total_amount),
+                    "order_status": r.order_status,
+                    "created_at": str(r.created_at) if r.created_at else None,
+                }
+            )
+        return customers

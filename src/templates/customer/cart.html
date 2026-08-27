@@ -1,0 +1,176 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Giỏ hàng - Verdia Merchandise{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+{% endblock %}
+
+
+{% block content %}
+
+<main class="cart-page">
+
+    <div class="page-heading">
+
+        <p>VERDIA SHOPPING</p>
+
+        <h1>Giỏ hàng của bạn</h1>
+
+    </div>
+
+    <section class="cart-table-header">
+
+        <div class="cart-check">
+
+            <input type="checkbox" id="select-all-top">
+
+            <label for="select-all-top">
+                Chọn tất cả
+            </label>
+
+        </div>
+
+
+        <div class="cart-product-title">
+            Sản phẩm
+        </div>
+
+        <div>
+            Đơn giá
+        </div>
+
+        <div>
+            Số lượng
+        </div>
+
+        <div>
+            Thành tiền
+        </div>
+
+        <div>
+            Thao tác
+        </div>
+
+    </section>
+
+    <section id="cart-list" class="cart-list">
+    </section>
+
+    <section id="empty-cart" class="empty-cart" style="display: none;">
+
+        <i class='bx bx-cart'></i>
+
+        <h2>
+            Giỏ hàng đang trống
+        </h2>
+
+        <p>
+            Hãy thêm vài sản phẩm bạn yêu thích vào giỏ hàng.
+        </p>
+
+        <a href="/products" class="continue-shopping">
+            Tiếp tục mua sắm
+        </a>
+
+    </section>
+
+    <section class="recommended-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <p>
+                    YOU MAY ALSO LIKE
+                </p>
+
+                <h2>
+                    Sản phẩm khác
+                </h2>
+
+            </div>
+
+
+            <a href="/products">
+
+                Xem tất cả
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+            </a>
+
+        </div>
+
+
+        <div id="recommended-grid" class="recommended-grid">
+        </div>
+
+    </section>
+
+</main>
+
+<section class="checkout-bar" id="checkout-bar">
+
+    <div class="checkout-inner">
+
+        <div class="checkout-left">
+
+            <label class="select-all-bottom">
+
+                <input type="checkbox" id="select-all-bottom">
+
+                <span>
+                    Chọn tất cả
+                </span>
+
+            </label>
+
+
+            <button type="button" id="delete-selected" class="delete-selected">
+                Xóa
+            </button>
+
+        </div>
+
+        <div class="checkout-right">
+
+            <div class="checkout-summary">
+
+                <span>
+
+                    Tổng thanh toán
+
+                    (
+                    <strong id="selected-count">
+                        0
+                    </strong>
+
+                    sản phẩm):
+
+                </span>
+
+
+                <strong id="selected-total" class="selected-total">
+                    0đ
+                </strong>
+
+            </div>
+
+
+            <button type="button" id="checkout-btn" class="checkout-btn">
+                Mua hàng
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}

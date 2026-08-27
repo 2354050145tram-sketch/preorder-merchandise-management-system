@@ -8,7 +8,6 @@ from utils.helpers import response_success, response_error
 notification_bp = Blueprint("notifications", __name__, url_prefix="/api/notifications")
 
 
-# Admin gửi thông báo cho toàn bộ khách thuộc đợt preorder
 @notification_bp.route("/admin/preorders/<int:preorder_id>", methods=["POST"])
 @jwt_required()
 def send_preorder_notification(preorder_id):
@@ -42,7 +41,6 @@ def send_preorder_notification(preorder_id):
         return response_error("Có lỗi xảy ra khi gửi thông báo preorder", 500)
 
 
-# Khách hàng xem thông báo của chính mình
 @notification_bp.route("/me", methods=["GET"])
 @jwt_required()
 def get_my_notifications():
@@ -51,20 +49,28 @@ def get_my_notifications():
 
         notifications = NotificationService.get_user_notifications(user_id)
 
-        return (
-            response_success(
-                {
-                    "notifications": [
-                        serialize_notification(notification)
-                        for notification in notifications
-                    ]
-                }
-            ),
+        return response_success(
+            {
+                "notifications": [
+                    serialize_notification(notification)
+                    for notification in notifications
+                ]
+            },
+            "Lấy thông báo thành công",
             200,
         )
 
     except ValueError as error:
-        return response_error(str(error), 404)
+        return response_error(
+            str(error),
+            404,
+        )
 
-    except Exception:
-        return response_error("Có lỗi xảy ra khi lấy thông báo", 500)
+    except Exception as error:
+
+        print("GET NOTIFICATIONS ERROR:", error)
+
+        return response_error(
+            "Có lỗi xảy ra khi lấy thông báo",
+            500,
+        )

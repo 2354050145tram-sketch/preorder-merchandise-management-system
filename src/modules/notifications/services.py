@@ -4,7 +4,7 @@ from utils.email import send_email
 from modules.notifications.models import Notification, UserNotification
 from modules.users.models import User
 from modules.preorders.models import PreOrder
-from modules.orders.models import Order, OrderItem
+from modules.orders.models import Order, OrderItem, Payment
 
 
 class NotificationService:
@@ -22,22 +22,22 @@ class NotificationService:
         if not title or not message:
             raise ValueError("Thông tin thông báo không được để trống")
 
-        # Lấy khách hàng có sản phẩm thuộc preorder
         stmt = (
             select(User)
             .join(Order, User.user_id == Order.user_id)
             .join(OrderItem, Order.order_id == OrderItem.order_id)
+            .join(Payment, Order.order_id == Payment.order_id)
             .where(
                 OrderItem.preorder_id == preorder_id,
                 OrderItem.item_status != "ĐÃ HỦY",
                 User.active.is_(True),
+                Payment.payment_status == "ĐÃ THANH TOÁN",
             )
             .distinct()
         )
 
         users = db.session.scalars(stmt).all()
 
-        # Chưa có khách đặt preorder thì không cần gửi
         if not users:
             return None
 
@@ -62,8 +62,6 @@ class NotificationService:
             db.session.rollback()
             raise
 
-        # Sau khi lưu notification thành công
-        # mới gửi Gmail
         for user in users:
             try:
                 send_email(recipient=user.email, subject=title, body=message)

@@ -1,0 +1,225 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Trang chủ - Verdia Merchandise{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<main>
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <p class="hero-small-title">
+                FILM · GAME · ANIME
+            </p>
+
+            <h1>
+                Find a little piece
+                <span>of your world.</span>
+            </h1>
+
+            <p class="hero-description">
+                Khám phá những món merchandise từ bộ phim,
+                trò chơi và anime mà bạn yêu thích.
+                Từ sản phẩm có sẵn đến những đợt pre-order đặc biệt.
+            </p>
+
+            <div class="hero-buttons">
+
+                <a href="/products" class="primary-btn">
+                    Khám phá ngay
+                    <i class='bx bx-right-arrow-alt'></i>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="hero-visual">
+
+            <div class="hero-logo-card">
+
+                <img src="{{ url_for('static', filename='images/logo/logo_verdia.png') }}" alt="Verdia">
+
+            </div>
+
+            <span class="fairy-star star-1">✦</span>
+            <span class="fairy-star star-2">✧</span>
+            <span class="fairy-star star-3">✦</span>
+
+        </div>
+
+    </section>
+
+    <section class="features">
+
+        <div class="feature-item">
+
+            <i class='bx bx-package'></i>
+
+            <div>
+                <h3>Merchandise chọn lọc</h3>
+                <p>Film · Game · Anime</p>
+            </div>
+
+        </div>
+
+
+        <div class="feature-item">
+
+            <i class='bx bx-time-five'></i>
+
+            <div>
+                <h3>Pre-order</h3>
+                <p>Theo dõi tiến độ dễ dàng</p>
+            </div>
+
+        </div>
+
+
+        <div class="feature-item">
+
+            <i class='bx bx-wallet'></i>
+
+            <div>
+                <h3>Ví Verd</h3>
+                <p>Thanh toán thuận tiện</p>
+            </div>
+
+        </div>
+
+
+        <div class="feature-item">
+
+            <i class='bx bx-shield-quarter'></i>
+
+            <div>
+                <h3>An tâm mua sắm</h3>
+                <p>Thông tin rõ ràng</p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="section categories">
+
+        <div class="section-heading">
+
+            <div>
+                <p class="section-small-title">VERDIA COLLECTION</p>
+                <h2>Khám phá thế giới của bạn</h2>
+            </div>
+
+            <a href="/products">
+                Xem tất cả
+                <i class='bx bx-right-arrow-alt'></i>
+            </a>
+
+        </div>
+
+
+        <div class="category-grid">
+
+            <a href="/products" class="category-card">
+
+                <div class="category-icon">
+                    <i class='bx bx-film'></i>
+                </div>
+
+                <h3>Film</h3>
+
+                <p>
+                    Merchandise từ những bộ phim
+                    và series yêu thích.
+                </p>
+
+                <span>
+                    Khám phá
+                    <i class='bx bx-right-arrow-alt'></i>
+                </span>
+
+            </a>
+
+
+            <a href="/products" class="category-card">
+
+                <div class="category-icon">
+                    <i class='bx bx-joystick'></i>
+                </div>
+
+                <h3>Game</h3>
+
+                <p>
+                    Những vật phẩm dành cho
+                    thế giới game của bạn.
+                </p>
+
+                <span>
+                    Khám phá
+                    <i class='bx bx-right-arrow-alt'></i>
+                </span>
+
+            </a>
+
+
+            <a href="/products" class="category-card">
+
+                <div class="category-icon">
+                    <i class='bx bx-star'></i>
+                </div>
+
+                <h3>Anime</h3>
+
+                <p>
+                    Mang nhân vật yêu thích
+                    đến gần bạn hơn.
+                </p>
+
+                <span>
+                    Khám phá
+                    <i class='bx bx-right-arrow-alt'></i>
+                </span>
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <section class="preorder-banner">
+
+        <div>
+
+            <p class="section-small-title">
+                PRE-ORDER
+            </p>
+
+            <h2>
+                Đừng bỏ lỡ những đợt hàng đặc biệt.
+            </h2>
+
+            <p>
+                Theo dõi thời hạn đặt hàng và tiến độ
+                sản phẩm ngay tại Verdia.
+            </p>
+
+        </div>
+
+        <a href="/products?status=PREORDER" class="banner-btn">
+            Xem Pre-order
+            <i class='bx bx-right-arrow-alt'></i>
+        </a>
+
+    </section>
+
+</main>
+
+
+{% endblock %}

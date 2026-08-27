@@ -1,0 +1,713 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}About Verdia - Verdia Merchandise{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+{% endblock %}
+
+
+{% block content %}
+
+<main class="about-page">
+
+    <section class="about-hero">
+
+        <div class="about-hero-content">
+
+            <p class="about-eyebrow">
+                VERDIA MERCHANDISE
+            </p>
+
+            <h1>
+                About Verdia
+            </h1>
+
+            <p class="about-intro">
+                Một góc nhỏ dành cho những món merchandise
+                từ thế giới mà bạn yêu thích.
+            </p>
+
+        </div>
+
+    </section>
+
+    <section class="about-section">
+
+        <div class="section-heading">
+
+            <span>
+                01
+            </span>
+
+            <div>
+                <p>
+                    ABOUT VERDIA
+                </p>
+
+                <h2>
+                    Về Verdia
+                </h2>
+            </div>
+
+        </div>
+
+
+        <div class="about-content-card">
+
+            <p>
+                Verdia là cửa hàng chuyên cung cấp merchandise
+                anime, game và manga, bao gồm cả sản phẩm
+                Official và Unofficial.
+            </p>
+
+            <p>
+                Chúng tôi tập trung vào mô hình pre-order,
+                giúp khách hàng dễ dàng tiếp cận những sản phẩm
+                mới với thông tin minh bạch và quy trình cập nhật
+                rõ ràng.
+            </p>
+
+        </div>
+
+    </section>
+
+    <section class="about-section">
+
+        <div class="section-heading">
+
+            <span>02</span>
+
+            <div>
+                <p>PRODUCT RANGE</p>
+                <h2>Sản phẩm kinh doanh</h2>
+            </div>
+
+        </div>
+
+
+        <div class="about-content-card">
+
+            <p>
+                Verdia chuyên nhận pre-order các mặt hàng merchandise
+                từ game, animation, manga, manhua, manhwa và các tác phẩm giải trí.
+                Đa dạng sản phẩm Official chính hãng cũng như các sản phẩm
+                Unofficial của các artist.
+            </p>
+
+            <div class="merchandise-grid">
+
+                <div class="merchandise-card">
+
+                    <div class="merchandise-image">
+                        <img src="{{ url_for('static', filename='images/about/figure.jpg') }}" alt="Figure">
+                    </div>
+
+                    <div class="merchandise-info">
+                        <h3>Figure</h3>
+                        <p>
+                            Mô hình nhân vật từ anime, game
+                            và các series nổi tiếng.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="merchandise-card">
+
+                    <div class="merchandise-image">
+                        <img src="{{ url_for('static', filename='images/about/standee.jpg') }}" alt="Standee">
+                    </div>
+
+                    <div class="merchandise-info">
+                        <h3>Standee</h3>
+                        <p>
+                            Acrylic standee nhân vật,
+                            illustration và merchandise sự kiện.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="merchandise-card">
+
+                    <div class="merchandise-image">
+                        <img src="{{ url_for('static', filename='images/about/card.jpg') }}" alt="Card">
+                    </div>
+
+                    <div class="merchandise-info">
+                        <h3>Card</h3>
+                        <p>
+                            Character card, postcard
+                            và các loại collectible card.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="merchandise-card">
+
+                    <div class="merchandise-image">
+                        <img src="{{ url_for('static', filename='images/about/badge.jpg') }}" alt="Badge">
+                    </div>
+
+                    <div class="merchandise-info">
+                        <h3>Badge</h3>
+                        <p>
+                            Huy hiệu nhân vật và badge
+                            thuộc các bộ sưu tập merchandise.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="merchandise-card">
+
+                    <div class="merchandise-image">
+                        <img src="{{ url_for('static', filename='images/about/keychain.jpg') }}" alt="Keychain">
+                    </div>
+
+                    <div class="merchandise-info">
+                        <h3>Keychain</h3>
+                        <p>
+                            Móc khóa acrylic, kim loại
+                            và các thiết kế nhân vật.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="merchandise-card">
+
+                    <div class="merchandise-image">
+                        <img src="{{ url_for('static', filename='images/about/plush.jpg') }}" alt="Plush">
+                    </div>
+
+                    <div class="merchandise-info">
+                        <h3>Plush</h3>
+                        <p>
+                            Doll bông, mascot và
+                            plush nhân vật nhiều kích thước.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="merchandise-card">
+
+                    <div class="merchandise-image">
+                        <img src="{{ url_for('static', filename='images/about/shikishi.jpg') }}" alt="Shikishi">
+                    </div>
+
+                    <div class="merchandise-info">
+                        <h3>Shikishi</h3>
+                        <p>
+                            Illustration board và shikishi
+                            thuộc các collection chính thức.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="merchandise-card">
+
+                    <div class="merchandise-image">
+                        <img src="{{ url_for('static', filename='images/about/other-merch.jpg') }}"
+                            alt="Merchandise khác">
+                    </div>
+
+                    <div class="merchandise-info">
+                        <h3>Merchandise khác</h3>
+                        <p>
+                            Postcard, quần áo, phụ kiện
+                            và nhiều sản phẩm sưu tầm khác.
+                        </p>
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="about-section">
+
+        <div class="section-heading">
+
+            <span>
+                03
+            </span>
+
+            <div>
+                <p>
+                    PRE-ORDER PROCESS
+                </p>
+
+                <h2>
+                    Quy trình Pre-order tại Verdia
+                </h2>
+            </div>
+
+        </div>
+
+
+        <div class="process-card">
+
+            <div class="process-flow">
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        01
+                    </div>
+
+                    <p>
+                        Đặt hàng
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        02
+                    </div>
+
+                    <p>
+                        Thanh toán
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        03
+                    </div>
+
+                    <p>
+                        Shop đặt hàng
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        04
+                    </div>
+
+                    <p>
+                        Đóng order
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        05
+                    </div>
+
+                    <p>
+                        Sản xuất
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        06
+                    </div>
+
+                    <p>
+                        Kiểm tra chất lượng
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        07
+                    </div>
+
+                    <p>
+                        Vận chuyển quốc tế
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        08
+                    </div>
+
+                    <p>
+                        Vận chuyển nội địa
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        09
+                    </div>
+
+                    <p>
+                        Đến tay shop
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        10
+                    </div>
+
+                    <p>
+                        Kiểm tra chất lượng lần 2
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        11
+                    </div>
+
+                    <p>
+                        Báo các khoản phụ phí
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        12
+                    </div>
+
+                    <p>
+                        Đóng gói
+                    </p>
+
+                </div>
+
+
+                <i class='bx bx-right-arrow-alt'></i>
+
+
+                <div class="process-step">
+
+                    <div class="process-number">
+                        13
+                    </div>
+
+                    <p>
+                        Giao hàng
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="process-note">
+
+                <i class='bx bx-info-circle'></i>
+
+                <p>
+                    <strong>Lưu ý:</strong>
+                    Thời gian hoàn thành một đơn pre-order
+                    thường kéo dài từ 3–6 tháng, tùy thuộc vào
+                    lịch phát hành của nhà sản xuất, thời gian
+                    vận chuyển quốc tế và quá trình thông quan.
+                    Một số sản phẩm có thể về sớm hơn hoặc muộn
+                    hơn so với dự kiến.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="about-section">
+
+        <div class="section-heading">
+
+            <span>
+                04
+            </span>
+
+            <div>
+
+                <p>
+                    PRE-ORDER POLICY
+                </p>
+
+                <h2>
+                    Quy định Pre-order
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="about-content-card preorder-policy-card">
+
+            <p>
+                Các sản phẩm Pre-order tại Verdia được đặt theo từng đợt
+                và nhập từ nhà cung cấp sau khi khách hàng xác nhận đặt hàng.
+                Vì vậy, hàng Pre-order không áp dụng quy trình hoàn trả sản phẩm
+                sau khi hàng đã được giao đến khách hàng.
+            </p>
+
+            <p>
+                Trong quá trình hàng được vận chuyển và tiếp nhận,
+                Verdia sẽ kiểm tra tình trạng sản phẩm tại từng khâu.
+                Hình ảnh thực tế của hàng hóa sẽ được chụp và lưu lại
+                nhằm theo dõi tình trạng sản phẩm trong suốt quá trình
+                từ khi nhận hàng đến trước khi giao cho khách.
+            </p>
+
+            <p>
+                Trước khi đóng gói và giao hàng, sản phẩm sẽ được kiểm tra
+                chất lượng một lần nữa. Chỉ những sản phẩm đạt yêu cầu
+                mới được đóng gói và gửi đến khách hàng.
+            </p>
+
+            <p>
+                Nếu phát hiện lỗi từ nhà sản xuất hoặc nhà cung cấp,
+                Verdia sẽ chủ động xử lý trước khi giao hàng. Trường hợp
+                có hàng dự phòng, sản phẩm đạt chất lượng sẽ được sử dụng
+                để thay thế. Nếu cần thiết, Admin sẽ trực tiếp làm việc
+                với nhà cung cấp để xử lý hoặc gửi lại sản phẩm lỗi.
+            </p>
+
+            <p>
+                Hoàn tiền chỉ được áp dụng trong trường hợp đợt Pre-order
+                bị hủy hoặc không thể tiếp tục thực hiện, chẳng hạn như
+                nhà cung cấp hủy sản phẩm, ngừng hoạt động, không thể hoàn tất
+                đơn hàng, phát sinh vấn đề khiến Verdia quyết định ngừng giao dịch
+                với nhà cung cấp hoặc các trường hợp tương tự.
+            </p>
+
+            <div class="policy-note">
+
+                <i class='bx bx-camera'></i>
+
+                <p>
+                    Mỗi khâu tiếp nhận hàng đều được kiểm tra và chụp lại
+                    tình trạng sản phẩm. Các vấn đề về chất lượng sẽ được xử lý
+                    trước khi giao hàng, vì vậy quy trình Pre-order tại Verdia
+                    không có bước khách hàng hoàn trả sản phẩm sau khi nhận hàng.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="about-section">
+
+        <div class="section-heading">
+
+            <span>
+                04
+            </span>
+
+            <div>
+
+                <p>
+                    PURCHASE POLICY
+                </p>
+
+                <h2>
+                    Chính sách mua hàng
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="about-content-card preorder-policy-card">
+
+            <h3>
+                Chính sách đổi trả
+            </h3>
+
+            <p>
+                Verdia không áp dụng chính sách đổi hoặc trả hàng đối với
+                cả sản phẩm Pre-order và sản phẩm có sẵn.
+            </p>
+
+            <p>
+                Tất cả sản phẩm đều được kiểm tra tình trạng và chất lượng
+                khi hàng về. Trước khi đóng gói và giao đến khách hàng,
+                sản phẩm sẽ được kiểm tra một lần nữa để bảo đảm hàng
+                đạt yêu cầu trước khi gửi đi.
+            </p>
+
+            <p>
+                Trong quá trình tiếp nhận và kiểm tra hàng hóa,
+                Verdia sẽ chụp và lưu lại hình ảnh tình trạng sản phẩm
+                tại các khâu cần thiết. Nếu phát hiện sản phẩm có lỗi,
+                Verdia sẽ chủ động xử lý trước khi giao hàng, chẳng hạn
+                sử dụng hàng dự phòng đạt chất lượng hoặc làm việc lại
+                với nhà cung cấp.
+            </p>
+
+            <p>
+                Sản phẩm được lưu kho để chờ xử lý và giao đến khách hàng,
+                không được sử dụng hoặc trưng bày để bán lại dưới hình thức
+                hàng đã qua sử dụng.
+            </p>
+
+
+            <h3>
+                Chính sách hoàn tiền
+            </h3>
+
+            <p>
+                Hoàn tiền không được xem là hình thức đổi hoặc trả hàng.
+                Verdia chỉ thực hiện hoàn tiền trong trường hợp đơn hàng
+                hoặc đợt Pre-order không thể tiếp tục thực hiện.
+            </p>
+
+            <p>
+                Các trường hợp này có thể bao gồm nhà cung cấp hủy sản phẩm,
+                không thể tiếp tục cung cấp hàng, mất liên lạc, không thực hiện
+                nghĩa vụ giao hàng, Verdia quyết định ngừng giao dịch với
+                nhà cung cấp do phát sinh vấn đề nghiêm trọng hoặc những
+                trường hợp khác khiến đơn hàng không thể hoàn tất.
+            </p>
+
+
+            <div class="policy-note">
+
+                <i class='bx bx-shield-quarter'></i>
+
+                <p>
+                    Verdia không áp dụng đổi hoặc trả hàng sau khi sản phẩm
+                    đã được giao. Các vấn đề về chất lượng được kiểm tra và
+                    xử lý trước khi hàng được đóng gói và gửi đến khách hàng.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="about-section legit-section">
+
+        <div class="section-heading">
+
+            <span>
+                05
+            </span>
+
+            <div>
+                <p>
+                    CHECK LEGIT
+                </p>
+
+                <h2>
+                    Check Legit
+                </h2>
+            </div>
+
+        </div>
+
+
+        <div class="legit-card">
+
+            <i class='bx bxl-facebook-circle'></i>
+
+
+            <div class="legit-content">
+
+                <a href="https://www.facebook.com/share/p/1EFjjDGUzx/" target="_blank" rel="noopener noreferrer">
+                    https://www.facebook.com/share/p/1EFjjDGUzx/
+                </a>
+
+
+                <p>
+                    Verdia luôn đặt sự uy tín lên hàng đầu.
+                    Khách hàng có thể truy cập link để xem các
+                    thông tin xác thực của cửa hàng, giúp yên tâm
+                    hơn trước khi đặt mua merchandise.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+</main>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/about.js') }}"></script>
+{% endblock %}

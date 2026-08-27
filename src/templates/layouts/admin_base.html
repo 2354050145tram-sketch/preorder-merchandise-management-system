@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        Verdia Administration
+        {% endblock %}
+    </title>
+
+
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+
+    {% block extra_css %}
+    {% endblock %}
+
+</head>
+
+
+<body class="admin-body">
+
+
+    <div class="admin-shell">
+
+        <aside class="admin-sidebar" id="admin-sidebar">
+
+            <div class="admin-brand">
+
+                <a href="/admin/dashboard">
+
+                    <div class="admin-brand-logo">
+
+                        <img src="{{ url_for('static', filename='images/logo/logo_verdia.png') }}" alt="Verdia">
+
+                    </div>
+
+
+                    <div class="admin-brand-text">
+
+                        <strong>
+                            VERDIA
+                        </strong>
+
+                        <span>
+                            ADMINISTRATION
+                        </span>
+
+                    </div>
+
+                </a>
+
+            </div>
+
+            <div class="admin-menu-label">
+                QUẢN LÝ
+            </div>
+
+            <nav class="admin-menu">
+
+                <a href="/admin/dashboard"
+                    class="{% if request.path == '/admin/dashboard' or request.path == '/admin' %}active{% endif %}">
+                    <i class='bx bx-bar-chart-alt-2'></i>
+                    <span>Báo cáo</span>
+                </a>
+
+
+                <a href="/admin/products" class="{% if '/admin/products' in request.path %}active{% endif %}">
+                    <i class='bx bx-package'></i>
+                    <span>Sản phẩm</span>
+                </a>
+
+
+                <a href="/admin/orders" class="{% if '/admin/orders' in request.path %}active{% endif %}">
+                    <i class='bx bx-receipt'></i>
+                    <span>Đơn hàng</span>
+                </a>
+
+
+                <a href="/admin/inventory" class="{% if '/admin/inventory' in request.path %}active{% endif %}">
+                    <i class='bx bx-box'></i>
+                    <span>Kho</span>
+                </a>
+
+
+                <a href="/admin/users" class="{% if '/admin/users' in request.path %}active{% endif %}">
+                    <i class='bx bx-user'></i>
+                    <span>Người dùng</span>
+                </a>
+
+            </nav>
+
+            <div class="admin-sidebar-bottom">
+
+
+                <a href="/">
+
+                    <i class='bx bx-store'></i>
+
+                    <span>
+                        Xem cửa hàng
+                    </span>
+
+                </a>
+
+
+                <button type="button" id="admin-logout-btn">
+
+                    <i class='bx bx-log-out'></i>
+
+                    <span>
+                        Đăng xuất
+                    </span>
+
+                </button>
+
+            </div>
+
+        </aside>
+
+        <section class="admin-workspace">
+
+            <header class="admin-topbar">
+
+
+                <div class="admin-topbar-left">
+
+
+                    <button type="button" id="admin-sidebar-toggle" class="admin-icon-button">
+
+                        <i class='bx bx-menu'></i>
+
+                    </button>
+
+
+                    <div class="admin-breadcrumb">
+
+                        {% block breadcrumb %}
+
+                        <span>
+                            Verdia
+                        </span>
+
+                        <i class='bx bx-chevron-right'></i>
+
+                        <strong>
+                            Administration
+                        </strong>
+
+                        {% endblock %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="admin-topbar-right">
+
+                    <div class="admin-account">
+
+                        <div class="admin-account-avatar">
+                            <i class='bx bx-user'></i>
+                        </div>
+
+
+                        <div class="admin-account-info">
+
+                            <strong id="admin-username">
+                                Admin
+                            </strong>
+
+                            <span>
+                                Quản trị viên
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+            {% block control_panel %}
+            {% endblock %}
+
+            <main class="admin-content">
+
+                {% block content %}
+                {% endblock %}
+
+            </main>
+
+        </section>
+
+    </div>
+
+    <div id="admin-toast" class="admin-toast">
+    </div>
+
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
+
+    {% block extra_js %}
+    {% endblock %}
+
+
+</body>
+
+</html>

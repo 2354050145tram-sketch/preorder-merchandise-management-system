@@ -1,0 +1,277 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Thanh toán MoMo - Verdia Merchandise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-page-wrapper {
+        width: min(500px, 92%);
+        margin: 50px auto 100px;
+    }
+
+    .payment-card-box {
+        background: var(--cream, #fffaf3);
+        border: 1px solid var(--border, #eadcc8);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(36, 55, 68, 0.06);
+        overflow: hidden;
+    }
+
+    .payment-card-header {
+        background: var(--navy, #243744);
+        color: #ffffff;
+        padding: 20px 24px;
+        text-align: center;
+    }
+
+    .payment-card-header h2 {
+        font-size: 18px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .payment-card-body {
+        padding: 24px;
+    }
+
+    .qr-box-inner {
+        text-align: center;
+        margin-bottom: 22px;
+    }
+
+    .qr-box-inner img {
+        width: 210px;
+        height: 210px;
+        border-radius: 10px;
+        border: 1px solid var(--border, #eadcc8);
+        padding: 6px;
+        background: #fff;
+    }
+
+    .qr-hint-text {
+        font-size: 13px;
+        color: var(--muted, #938778);
+        margin-top: 8px;
+    }
+
+    .info-group-box {
+        background: #ffffff;
+        border: 1px solid var(--border, #eadcc8);
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        font-size: 14px;
+    }
+
+    .info-row-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .info-row-item span {
+        color: var(--muted, #938778);
+    }
+
+    .info-row-item strong {
+        color: var(--navy, #243744);
+    }
+
+    .info-row-item.highlight {
+        background: #fdf2f2;
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px dashed #fca5a5;
+    }
+
+    .info-row-item.highlight strong {
+        color: #dc2626;
+    }
+
+    .copy-btn-custom {
+        background: var(--cream-dark, #eee2cf);
+        border: none;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--navy, #243744);
+        margin-left: 6px;
+        transition: 0.2s;
+    }
+
+    .copy-btn-custom:hover {
+        background: var(--gold-light, #cdb894);
+    }
+
+    .warning-note-box {
+        margin-top: 16px;
+        font-size: 12px;
+        color: #8a6b2f;
+        background: #efe7d1;
+        padding: 10px 14px;
+        border-radius: 8px;
+        line-height: 1.5;
+        text-align: center;
+    }
+
+    .payment-card-footer {
+        padding: 16px 24px;
+        background: var(--cream-dark, #eee2cf);
+        border-top: 1px solid var(--border, #eadcc8);
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-action {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .btn-action-secondary {
+        background: #ffffff;
+        color: var(--navy, #243744);
+        border: 1px solid var(--border, #eadcc8);
+    }
+
+    .btn-action-primary {
+        background: var(--gold, #b88a45);
+        color: #ffffff;
+    }
+
+    .btn-action:hover {
+        opacity: 0.9;
+    }
+
+    .success-container-box {
+        width: min(700px, 92%);
+        margin: 60px auto 100px;
+        text-align: center;
+    }
+
+    .success-content-card {
+        background: var(--cream, #fffaf3);
+        padding: 45px 30px;
+        border-radius: 16px;
+        border: 1px solid var(--border, #eadcc8);
+        box-shadow: 0 10px 30px rgba(36, 55, 68, 0.05);
+        margin-bottom: 40px;
+    }
+
+    .success-content-card i {
+        font-size: 75px;
+        color: var(--olive, #596a55);
+        margin-bottom: 15px;
+    }
+
+    .success-content-card h1 {
+        font-size: 26px;
+        color: var(--navy, #243744);
+        margin-bottom: 8px;
+    }
+
+    .success-content-card p {
+        color: var(--muted, #938778);
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <div id="payment-view" class="payment-page-wrapper">
+        <div class="payment-card-box">
+            <div class="payment-card-header">
+                <h2><i class='bx bx-wallet'></i> Quét mã thanh toán MoMo</h2>
+            </div>
+
+            <div class="payment-card-body">
+                <div class="qr-box-inner">
+                    <img id="momo-qr-img" src="" alt="Mã QR MoMo">
+                    <div class="qr-hint-text">Mở <strong>App MoMo</strong> hoặc App Ngân hàng để quét mã</div>
+                </div>
+
+                <div class="info-group-box">
+                    <div class="info-row-item">
+                        <span>Mã đơn hàng:</span>
+                        <strong id="pay-order-id">#—</strong>
+                    </div>
+                    <div class="info-row-item">
+                        <span>Số điện thoại MoMo:</span>
+                        <div>
+                            <strong id="pay-phone">0966053514</strong>
+                            <button type="button" class="copy-btn-custom" onclick="copyTextContent('pay-phone')">Sao
+                                chép</button>
+                        </div>
+                    </div>
+                    <div class="info-row-item">
+                        <span>Chủ tài khoản:</span>
+                        <strong id="pay-name">NGUYEN THI NGOC TRAM</strong>
+                    </div>
+                    <div class="info-row-item">
+                        <span>Số tiền cần trả:</span>
+                        <strong id="pay-amount" style="color: var(--gold); font-size: 16px;">0 ₫</strong>
+                    </div>
+                    <div class="info-row-item highlight">
+                        <span>Nội dung chuyển khoản:</span>
+                        <div>
+                            <strong id="pay-memo">—</strong>
+                            <button type="button" class="copy-btn-custom" onclick="copyTextContent('pay-memo')"
+                                style="background: #fecaca; color: #991b1b;">Sao chép</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warning-note-box">
+                    ⚠️ Vui lòng giữ nguyên <strong>Nội dung chuyển khoản</strong> để hệ thống tự động nhận diện thanh
+                    toán thành công.
+                </div>
+            </div>
+
+            <div class="payment-card-footer">
+                <a href="#" id="btn-cancel-pay" class="btn-action btn-action-secondary">Quay lại mua sắm</a>
+                <button type="button" class="btn-action btn-action-primary" onclick="finishPayment()">Tôi đã chuyển
+                    khoản xong</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="success-view" style="display: none;" class="success-container-box">
+        <div class="success-content-card">
+            <i class='bx bx-check-circle'></i>
+            <h1>Đặt hàng thành công!</h1>
+            <p>Hệ thống đã ghi nhận thông tin thanh toán cho đơn hàng <strong id="success-order-id">#—</strong>. Chúng
+                tôi sẽ xử lý đơn hàng sớm nhất.</p>
+            <div style="margin-top: 25px;">
+                <a href="/products" class="btn-action btn-action-primary"
+                    style="display: inline-block; width: 220px; text-decoration: none;">Tiếp tục mua sắm</a>
+            </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 20px;">
+            <p style="color: var(--gold); font-size: 11px; letter-spacing: 2px; font-weight: 600;">YOU MAY ALSO LIKE</p>
+            <h2 style="font-size: 22px; color: var(--navy);">Có thể bạn cũng thích</h2>
+        </div>
+        <div id="recommended-grid" class="recommended-grid">
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/payment.js') }}"></script>
+{% endblock %}

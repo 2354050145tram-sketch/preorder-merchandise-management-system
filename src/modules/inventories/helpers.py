@@ -34,6 +34,7 @@ def serialize_inventory(inventory):
 def serialize_inventory_transaction(transaction):
     return {
         "inventory_transaction_id": transaction.inventory_transaction_id,
+        "inventory_transaction_id": transaction.inventory_transaction_id,
         "inventory_id": transaction.inventory_id,
         "transaction_type": transaction.transaction_type,
         "quantity": transaction.quantity,

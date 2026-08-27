@@ -1,10 +1,10 @@
 from config import db
 from decimal import Decimal, InvalidOperation
-from sqlalchemy import select
+from sqlalchemy import select, func
 from uuid import uuid4
 from modules.wallets.models import Wallet, WalletTransaction
 from modules.users.models import User
-from modules.orders.models import Order
+from modules.orders.models import Order, OrderItem, Payment
 
 
 class WalletService:
@@ -55,7 +55,12 @@ class WalletService:
         )
 
         if transaction_type:
-            valid_types = ["NẠP TIỀN", "THANH TOÁN", "RÚT TIỀN", "HOÀN TIỀN"]
+            valid_types = [
+                "NẠP TIỀN",
+                "THANH TOÁN",
+                "RÚT TIỀN",
+                "HOÀN TIỀN",
+            ]
 
             if transaction_type not in valid_types:
                 raise ValueError("Loại giao dịch không hợp lệ")
@@ -63,7 +68,12 @@ class WalletService:
             stmt = stmt.where(WalletTransaction.transaction_type == transaction_type)
 
         if transaction_status:
-            valid_statuses = ["CHỜ XỬ LÝ", "THÀNH CÔNG", "THẤT BẠI", "ĐÃ HỦY"]
+            valid_statuses = [
+                "CHỜ XỬ LÝ",
+                "THÀNH CÔNG",
+                "THẤT BẠI",
+                "ĐÃ HỦY",
+            ]
 
             if transaction_status not in valid_statuses:
                 raise ValueError("Trạng thái giao dịch không hợp lệ")
@@ -71,6 +81,11 @@ class WalletService:
             stmt = stmt.where(
                 WalletTransaction.transaction_status == transaction_status
             )
+
+        stmt = stmt.order_by(
+            WalletTransaction.created_at.desc(),
+            WalletTransaction.wallet_transaction_id.desc(),
+        )
 
         return db.session.scalars(stmt).all()
 
@@ -121,6 +136,9 @@ class WalletService:
             raise ValueError("Giao dịch đã được xử lý")
 
         wallet = db.session.get(Wallet, transaction.wallet_id)
+
+        if not wallet or not wallet.active:
+            raise ValueError("Ví không tồn tại")
 
         balance_before = wallet.balance
         balance_after = balance_before + transaction.amount
@@ -191,6 +209,9 @@ class WalletService:
 
         wallet = db.session.get(Wallet, transaction.wallet_id)
 
+        if not wallet or not wallet.active:
+            raise ValueError("Ví không tồn tại")
+
         if wallet.balance < transaction.amount:
             transaction.transaction_status = "THẤT BẠI"
 
@@ -221,10 +242,19 @@ class WalletService:
             raise
 
     @staticmethod
-    def pay_with_wallet(user_id, order_id, amount):
+    def pay_with_wallet(
+        user_id,
+        order_id,
+        payment_type,
+    ):
+        from modules.orders.services import PaymentService
+
         wallet = WalletService.get_wallet_by_user(user_id)
 
-        order = db.session.get(Order, order_id)
+        order = db.session.get(
+            Order,
+            order_id,
+        )
 
         if not order or not order.active:
             raise ValueError("Đơn hàng không tồn tại")
@@ -232,23 +262,42 @@ class WalletService:
         if order.user_id != user_id:
             raise ValueError("Đơn hàng không thuộc tài khoản này")
 
-        try:
-            amount = Decimal(str(amount))
-        except (InvalidOperation, TypeError, ValueError):
-            raise ValueError("Số tiền thanh toán không hợp lệ")
+        if order.order_status == "ĐÃ HỦY":
+            raise ValueError("Không thể thanh toán đơn hàng đã hủy")
+
+        if order.order_status == "HOÀN THÀNH":
+            raise ValueError("Đơn hàng đã hoàn thành")
+
+        pending_payment = db.session.scalar(
+            select(Payment).where(
+                Payment.order_id == order_id,
+                Payment.payment_status == "ĐANG THANH TOÁN",
+            )
+        )
+
+        if pending_payment:
+            raise ValueError("Đơn hàng đang có giao dịch " "thanh toán chưa hoàn tất")
+
+        amount = PaymentService.calculate_payment_amount(
+            order_id=order_id,
+            payment_type=payment_type,
+        )
+
+        amount = Decimal(str(amount))
 
         if not amount.is_finite() or amount <= 0:
-            raise ValueError("Số tiền thanh toán phải lớn hơn 0")
+            raise ValueError("Số tiền thanh toán không hợp lệ")
 
-        if wallet.balance < amount:
-            raise ValueError("Số dư ví không đủ")
+        balance_before = Decimal(str(wallet.balance))
 
-        balance_before = wallet.balance
+        if balance_before < amount:
+            raise ValueError("Số dư Ví Verd không đủ")
+
         balance_after = balance_before - amount
 
-        wallet.balance = balance_after
+        transaction_code = str(uuid4())
 
-        transaction = WalletTransaction(
+        wallet_transaction = WalletTransaction(
             wallet_id=wallet.wallet_id,
             order_id=order_id,
             transaction_type="THANH TOÁN",
@@ -256,39 +305,103 @@ class WalletService:
             balance_before=balance_before,
             balance_after=balance_after,
             transaction_status="THÀNH CÔNG",
-            transaction_code=str(uuid4()),
-            description=f"Thanh toán đơn hàng #{order_id}",
+            transaction_code=transaction_code,
+            description=(f"{payment_type} đơn hàng " f"#{order_id} bằng Ví Verd"),
+        )
+
+        payment = Payment(
+            order_id=order_id,
+            amount=amount,
+            payment_method="VÍ VERD",
+            payment_type=payment_type,
+            payment_status="ĐANG THANH TOÁN",
+            transaction_id=transaction_code,
         )
 
         try:
-            db.session.add(transaction)
+            wallet.balance = balance_after
+
+            db.session.add(wallet_transaction)
+
+            db.session.add(payment)
+
+            db.session.flush()
+
+            PaymentService.apply_successful_payment(payment)
+
             db.session.commit()
 
-            return transaction
+            return wallet_transaction
 
         except Exception:
             db.session.rollback()
             raise
 
     @staticmethod
-    def refund_to_wallet(user_id, order_id, amount, description=None):
-        wallet = WalletService.get_wallet_by_user(user_id)
-
+    def refund_to_wallet(order_id, order_item_id, amount, description=None):
         order = db.session.get(Order, order_id)
 
-        if not order:
+        if not order or not order.active:
             raise ValueError("Đơn hàng không tồn tại")
 
-        if order.user_id != user_id:
-            raise ValueError("Đơn hàng không thuộc tài khoản này")
+        order_item = db.session.get(OrderItem, order_item_id)
+
+        if not order_item or order_item.order_id != order_id:
+            raise ValueError("Sản phẩm trong đơn hàng không tồn tại")
+
+        existing_refund = db.session.scalar(
+            select(WalletTransaction).where(
+                WalletTransaction.order_item_id == order_item_id,
+                WalletTransaction.transaction_type == "HOÀN TIỀN",
+                WalletTransaction.transaction_status == "THÀNH CÔNG",
+            )
+        )
+
+        if existing_refund:
+            raise ValueError("Sản phẩm đã được hoàn tiền")
+
+        wallet = WalletService.get_wallet_by_user(order.user_id)
 
         try:
             amount = Decimal(str(amount))
+
         except (InvalidOperation, TypeError, ValueError):
             raise ValueError("Số tiền hoàn không hợp lệ")
 
         if not amount.is_finite() or amount <= 0:
             raise ValueError("Số tiền hoàn phải lớn hơn 0")
+
+        paid_stmt = select(func.coalesce(func.sum(Payment.amount), 0)).where(
+            Payment.order_id == order_id,
+            Payment.payment_status.in_(["ĐÃ THANH TOÁN", "ĐÃ HOÀN TIỀN"]),
+        )
+
+        total_paid = db.session.scalar(paid_stmt)
+
+        total_paid = Decimal(str(total_paid))
+
+        if total_paid <= 0:
+            raise ValueError("Đơn hàng chưa được thanh toán")
+
+        refunded_stmt = select(
+            func.coalesce(func.sum(WalletTransaction.amount), 0)
+        ).where(
+            WalletTransaction.order_id == order_id,
+            WalletTransaction.transaction_type == "HOÀN TIỀN",
+            WalletTransaction.transaction_status == "THÀNH CÔNG",
+        )
+
+        total_refunded = db.session.scalar(refunded_stmt)
+
+        total_refunded = Decimal(str(total_refunded))
+
+        refundable_amount = total_paid - total_refunded
+
+        if refundable_amount <= 0:
+            raise ValueError("Đơn hàng đã được hoàn tiền đầy đủ")
+
+        if amount > refundable_amount:
+            raise ValueError("Số tiền hoàn vượt quá số tiền có thể hoàn")
 
         balance_before = wallet.balance
         balance_after = balance_before + amount
@@ -298,6 +411,7 @@ class WalletService:
         transaction = WalletTransaction(
             wallet_id=wallet.wallet_id,
             order_id=order_id,
+            order_item_id=order_item_id,
             transaction_type="HOÀN TIỀN",
             amount=amount,
             balance_before=balance_before,
@@ -307,8 +421,19 @@ class WalletService:
             description=(description or f"Hoàn tiền đơn hàng #{order_id}"),
         )
 
+        if amount == refundable_amount:
+            payment_stmt = select(Payment).where(
+                Payment.order_id == order_id, Payment.payment_status == "ĐÃ THANH TOÁN"
+            )
+
+            payments = db.session.scalars(payment_stmt).all()
+
+            for payment in payments:
+                payment.payment_status = "ĐÃ HOÀN TIỀN"
+
         try:
             db.session.add(transaction)
+
             db.session.commit()
 
             return transaction
