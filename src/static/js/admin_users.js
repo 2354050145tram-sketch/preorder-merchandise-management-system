@@ -6,7 +6,6 @@ let currentViewingUser = null;
 let userSearchDebounce = null;
 let userFetchController = null;
 
-// DOM Elements
 const userListView = document.getElementById("user-list-view");
 const userFormView = document.getElementById("user-form-view");
 const userListControlPanel = document.getElementById("user-list-control-panel");
@@ -73,7 +72,6 @@ function bindUserEvents() {
         renderUserPaginatedTable();
     });
 
-    // Chuyển Tab
     document.querySelectorAll(".user-tab-btn").forEach(button => {
         button.addEventListener("click", () => {
             switchUserTab(button.dataset.userTab);
@@ -110,7 +108,6 @@ function showUserDetailView() {
     if (userFormControlPanel) userFormControlPanel.style.setProperty("display", "flex", "important");
 }
 
-// 1. TẢI DANH SÁCH NGƯỜI DÙNG
 async function loadAdminUsers(showSpinner = false) {
     if (userFetchController) userFetchController.abort();
     userFetchController = new AbortController();
@@ -150,7 +147,6 @@ async function loadAdminUsers(showSpinner = false) {
     }
 }
 
-// 2. RENDER BẢNG VÀ PHÂN TRANG
 function renderUserPaginatedTable() {
     const keyword = document.getElementById("admin-user-keyword")?.value.trim().toLowerCase() || "";
     const sortType = document.getElementById("admin-user-sort")?.value || "newest";
@@ -163,22 +159,20 @@ function renderUserPaginatedTable() {
     });
 
     filtered.sort((a, b) => {
-        const dateA = new Date(a.created_at || 0).getTime();
-        const dateB = new Date(b.created_at || 0).getTime();
-
+        const idA = Number(a.user_id || 0);
+        const idB = Number(b.user_id || 0);
         const walletA = Number(a.wallet_balance || 0);
         const walletB = Number(b.wallet_balance || 0);
-
         const ordersCountA = (a.orders || []).length;
         const ordersCountB = (b.orders || []).length;
 
-        if (sortType === "newest") return (dateB - dateA) || (b.user_id - a.user_id);
-        if (sortType === "oldest") return (dateA - dateB) || (a.user_id - b.user_id);
-        if (sortType === "wallet_desc") return walletB - walletA;
-        if (sortType === "wallet_asc") return walletA - walletB;
-        if (sortType === "orders_desc") return ordersCountB - ordersCountA;
-        if (sortType === "orders_asc") return ordersCountA - ordersCountB;
-        return 0;
+        if (sortType === "oldest") return idA - idB;
+        if (sortType === "wallet_desc") return (walletB - walletA) || (idB - idA);
+        if (sortType === "wallet_asc") return (walletA - walletB) || (idB - idA);
+        if (sortType === "orders_desc") return (ordersCountB - ordersCountA) || (idB - idA);
+        if (sortType === "orders_asc") return (ordersCountA - ordersCountB) || (idB - idA);
+        
+        return idB - idA;
     });
 
     const total = filtered.length;
@@ -277,7 +271,6 @@ function goToUserPage(page) {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// 3. MỞ CHI TIẾT NGƯỜI DÙNG
 async function openUserDetail(userId) {
     const token = getAdminToken();
     try {
@@ -299,7 +292,6 @@ async function openUserDetail(userId) {
         document.getElementById("user-breadcrumb-current").textContent = user.username;
         document.getElementById("user-form-mode").textContent = `Người dùng #${user.user_id}`;
 
-        // Tạo avatar chữ cái đầu
         const initial = (user.username || "U").charAt(0).toUpperCase();
         document.getElementById("user-avatar-text").textContent = initial;
 
@@ -308,7 +300,6 @@ async function openUserDetail(userId) {
         const rawDate = user.created_at || "";
         document.getElementById("user-created-date-display").textContent = rawDate ? String(rawDate).split('T')[0] : "—";
 
-        // Thống kê nhanh ở Header
         const walBal = Number(user.wallet_balance || 0);
         const ords = user.orders || [];
         document.getElementById("user-hero-wallet").textContent = formatUserPrice(walBal);
@@ -330,7 +321,6 @@ function renderUserHeaderActions(user) {
     if (!container) return;
     const isActive = user.active !== false && user.active !== 0;
 
-    // Không hiện nút khóa nếu tài khoản là Admin
     if (user.role_id === 0) {
         container.innerHTML = "";
         return;
@@ -416,7 +406,6 @@ function renderUserWallet(user) {
     }).join("");
 }
 
-// 4. THAO TÁC KHÓA / MỞ KHÓA TÀI KHOẢN
 async function toggleUserActive(userId, willActive) {
     const actionText = willActive ? "mở khóa" : "khóa";
     if (!confirm(`Bạn có chắc muốn ${actionText} tài khoản này?`)) return;

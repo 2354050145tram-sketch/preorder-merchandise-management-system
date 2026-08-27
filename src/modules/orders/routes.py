@@ -5,7 +5,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from modules.orders.services import OrderService, PaymentService
 from modules.orders.models import Order, OrderItem, Payment
 from modules.users.models import User
-from modules.orders.models import OrderItem, Payment
 from modules.wallets.services import WalletService
 from modules.wallets.helpers import serialize_wallet_transaction
 from modules.orders.helpers import (
@@ -13,6 +12,7 @@ from modules.orders.helpers import (
     serialize_order,
     serialize_order_item,
     serialize_payment,
+    serialize_order_summary,
 )
 from utils.helpers import response_success, response_error
 
@@ -95,9 +95,6 @@ def get_order_by_id(order_id):
             "Có lỗi xảy ra khi lấy đơn hàng",
             500,
         )
-
-
-from modules.orders.helpers import check_admin, serialize_order, serialize_order_summary
 
 
 @order_bp.route("/admin", methods=["GET"])
@@ -278,21 +275,17 @@ def cancel_order_item(order_item_id):
 def create_payment(order_id):
     try:
         user_id = int(get_jwt_identity())
-
         order = OrderService.get_order_by_id(order_id)
 
         if order.user_id != user_id:
             return response_error("Không có quyền thanh toán đơn hàng này", 403)
 
         data = request.get_json() or {}
-
         payment_method = data.get("payment_method")
-
         payment_type = data.get("payment_type")
-
         transaction_id = data.get("transaction_id")
 
-        if payment_method != "MOMO":
+        if payment_method not in ["MOMO", "VÍ VERD"]:
             raise ValueError("Phương thức thanh toán không hợp lệ")
 
         payment = PaymentService.create_payment(
@@ -308,9 +301,8 @@ def create_payment(order_id):
 
     except ValueError as error:
         return response_error(str(error), 400)
-
-    except Exception:
-        return response_error("Có lỗi xảy ra khi tạo thanh toán", 500)
+    except Exception as error:
+        return response_error(f"Lỗi: {str(error)}", 500)
 
 
 @order_bp.route("/<int:order_id>/payments", methods=["GET"])
@@ -475,9 +467,7 @@ def get_deposit_eligibility():
 def get_payment_summary(order_id):
     try:
         user_id = int(get_jwt_identity())
-
         summary = PaymentService.get_order_payment_summary(order_id)
-
         order = summary["order"]
 
         if order.user_id != user_id:
@@ -489,6 +479,7 @@ def get_payment_summary(order_id):
         return response_success(
             {
                 "order_id": order.order_id,
+                "wallet_balance": float(summary.get("wallet_balance", 0)),
                 "preorder_amount": float(summary["preorder_amount"]),
                 "in_stock_amount": float(summary["in_stock_amount"]),
                 "shipping_fee": float(summary["shipping_fee"]),
@@ -502,17 +493,8 @@ def get_payment_summary(order_id):
             200,
         )
 
-    except ValueError as error:
-        return response_error(
-            str(error),
-            400,
-        )
-
-    except Exception:
-        return response_error(
-            "Có lỗi xảy ra khi lấy " "thông tin thanh toán",
-            500,
-        )
+    except Exception as error:
+        return response_error(str(error), 500)
 
 
 @order_bp.route("/admin/product/<int:product_id>/preorder-customers", methods=["GET"])

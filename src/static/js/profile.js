@@ -178,7 +178,7 @@ if (logoutBtn) {
 let currentUser = null;
 
 let originalProfile = null;
- 
+
 function getToken() {
 
     return localStorage.getItem(
@@ -186,7 +186,7 @@ function getToken() {
     );
 
 }
- 
+
 function openTab(tabName) {
 
     tabs.forEach(tab => {
@@ -271,7 +271,7 @@ document.querySelectorAll(
     );
 
 });
- 
+
 function showToast(message) {
 
     toast.textContent =
@@ -292,7 +292,7 @@ function showToast(message) {
     }, 2500);
 
 }
- 
+
 async function loadProfile() {
 
     const token =
@@ -369,7 +369,7 @@ async function loadProfile() {
     }
 
 }
- 
+
 async function loadOrders() {
 
     const token =
@@ -503,7 +503,7 @@ document.querySelectorAll(
     );
 
 });
- 
+
 async function loadWallet() {
 
     const token =
@@ -790,91 +790,44 @@ function renderWalletTransactions() {
 }
 
 if (depositWalletBtn) {
+    depositWalletBtn.addEventListener("click", async () => {
+        const rawAmount = prompt("Nhập số tiền muốn nạp vào Ví Verd (VNĐ, tối thiểu 10.000đ):");
+        if (!rawAmount) return;
 
-    depositWalletBtn.addEventListener(
-        "click",
-        async () => {
-
-            const amount =
-                prompt(
-                    "Nhập số tiền muốn nạp:"
-                );
-
-
-            if (!amount) {
-                return;
-            }
-
-
-            const token =
-                getToken();
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        "/api/wallets/deposit",
-                        {
-                            method:
-                                "POST",
-
-                            headers: {
-
-                                "Content-Type":
-                                    "application/json",
-
-                                Authorization:
-                                    `Bearer ${token}`
-
-                            },
-
-                            body:
-                                JSON.stringify({
-                                    amount:
-                                        amount,
-
-                                    description:
-                                        "Yêu cầu nạp Ví Verd"
-                                })
-
-                        }
-                    );
-
-
-                const result =
-                    await response.json();
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        result.message ||
-                        "Không thể tạo yêu cầu nạp"
-                    );
-
-                }
-
-
-                showToast(
-                    "Đã gửi yêu cầu nạp tiền"
-                );
-
-
-                await loadWalletTransactions();
-
-
-            } catch (error) {
-
-                showToast(
-                    error.message
-                );
-
-            }
-
+        const amount = Number(rawAmount.replace(/\D/g, ''));
+        if (isNaN(amount) || amount < 10000) {
+            alert("Số tiền nạp tối thiểu là 10.000đ");
+            return;
         }
-    );
 
+        const token = getToken();
+        try {
+            const response = await fetch("/api/wallets/deposit", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    description: "Nạp tiền vào Ví Verd"
+                })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || "Không thể tạo yêu cầu nạp tiền");
+            }
+
+            const trans = result.data?.transaction || result.transaction;
+
+            // 👉 CHUYỂN HƯỚNG SANG TRANG THANH TOÁN MOMO
+            window.location.href = `/payment?type=deposit&trans_id=${trans.wallet_transaction_id}`;
+
+        } catch (error) {
+            showToast(error.message || "Lỗi tạo yêu cầu nạp tiền");
+        }
+    });
 }
 
 if (withdrawWalletBtn) {
@@ -964,7 +917,7 @@ if (withdrawWalletBtn) {
     );
 
 }
- 
+
 function fillProfile(user) {
 
     const profile =
@@ -1032,7 +985,7 @@ function fillProfile(user) {
     };
 
 }
- 
+
 function setEditMode(enabled) {
 
     fullNameInput.disabled =
@@ -1070,7 +1023,7 @@ editProfileBtn.addEventListener(
 
     }
 );
- 
+
 cancelEditBtn.addEventListener(
     "click",
     () => {
@@ -1096,7 +1049,7 @@ cancelEditBtn.addEventListener(
 
     }
 );
- 
+
 profileForm.addEventListener(
     "submit",
     async event => {
@@ -1208,7 +1161,7 @@ profileForm.addEventListener(
 
     }
 );
- 
+
 document.querySelectorAll(
     "[data-order-filter]"
 ).forEach(button => {
@@ -1344,7 +1297,7 @@ function getPreorderItems() {
 
     return preorderItems;
 }
- 
+
 function getShippingOrders() {
 
     return allOrders.filter(
@@ -1354,7 +1307,7 @@ function getShippingOrders() {
                 getOrderItems(
                     order
                 );
- 
+
             if (
                 !items.length
             ) {
@@ -1369,13 +1322,13 @@ function getShippingOrders() {
                         ||
                         item.preorder
                 );
- 
+
             if (
                 preorderItems.length === 0
             ) {
                 return true;
             }
- 
+
             return preorderItems.every(
                 item =>
                     getPreorderProgress(
@@ -1416,14 +1369,14 @@ function getPreorderProgress(
     );
 
 }
- 
+
 function getPreorderStage(item) {
 
     const progress =
         getPreorderProgress(
             item
         );
-     if (
+    if (
         progress === "MỞ PREORDER"
         ||
         progress === "ĐÃ ĐẶT HÀNG"
@@ -1432,14 +1385,14 @@ function getPreorderStage(item) {
         return "PREORDER";
 
     }
-     if (
+    if (
         progress === "ĐANG SẢN XUẤT"
     ) {
 
         return "PRODUCTION";
 
     }
-     if (
+    if (
         progress === "ĐÃ VỀ KHO TRUNG QUỐC"
         ||
         progress === "ĐÃ VỀ KHO VIỆT NAM"
@@ -1448,7 +1401,7 @@ function getPreorderStage(item) {
         return "IN_TRANSIT";
 
     }
-     if (
+    if (
         progress === "ĐANG GÓI HÀNG"
         ||
         progress === "ĐÃ VẬN CHUYỂN"
@@ -1464,7 +1417,7 @@ function getPreorderStage(item) {
     return "";
 
 }
- 
+
 function getPreorderDisplayStatus(item) {
 
     const stage =
@@ -1683,7 +1636,7 @@ function renderPreorderOrders(
             .join("");
 
 }
- 
+
 function formatPrice(price) {
 
     return Number(
@@ -1693,7 +1646,7 @@ function formatPrice(price) {
     ) + "đ";
 
 }
- 
+
 function getOrderStatusClass(status) {
 
     if (
@@ -1720,7 +1673,7 @@ function getOrderStatusClass(status) {
     return "processing";
 
 }
- 
+
 function getOrderItems(order) {
 
     return (
@@ -1732,7 +1685,7 @@ function getOrderItems(order) {
     );
 
 }
- 
+
 function getOrderShippingStatus(order) {
 
     const items =
@@ -1813,7 +1766,7 @@ function getOrderShippingStatus(order) {
     return statuses[0];
 
 }
- 
+
 function getShippingStatusClass(status) {
 
     if (
@@ -1840,7 +1793,7 @@ function getShippingStatusClass(status) {
     return "shipping-waiting";
 
 }
- 
+
 function getTrackingCode(order) {
 
     const items =
@@ -1861,7 +1814,7 @@ function getTrackingCode(order) {
         || "";
 
 }
- 
+
 function getOrderItemImage(item) {
 
     return (
@@ -1873,7 +1826,7 @@ function getOrderItemImage(item) {
     );
 
 }
- 
+
 function getOrderItemName(item) {
 
     return (
@@ -1885,7 +1838,7 @@ function getOrderItemName(item) {
     );
 
 }
- 
+
 function getOrderItemType(item) {
 
     const status =
@@ -1915,7 +1868,7 @@ function getOrderItemType(item) {
     return "";
 
 }
- 
+
 function createOrderProductHTML(item) {
 
     const image =
@@ -2007,7 +1960,7 @@ function createOrderProductHTML(item) {
     `;
 
 }
- 
+
 function createOrderHTML(order) {
 
     const shippingStatus =
@@ -2202,7 +2155,7 @@ function createOrderHTML(order) {
     `;
 
 }
- 
+
 function renderRecentOrders() {
 
     if (
@@ -2243,7 +2196,7 @@ function renderRecentOrders() {
             .join("");
 
 }
- 
+
 function renderOrders(orders) {
 
     if (
@@ -2276,7 +2229,7 @@ function renderOrders(orders) {
             .join("");
 
 }
- 
+
 async function initProfile() {
 
     await loadProfile();

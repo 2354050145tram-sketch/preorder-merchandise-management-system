@@ -1,12 +1,12 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Thanh toán MoMo - Verdia Merchandise{% endblock %}
+{% block title %}Thanh toán đơn hàng - Verdia Merchandise{% endblock %}
 
 {% block extra_css %}
 <style>
     .payment-page-wrapper {
-        width: min(500px, 92%);
-        margin: 50px auto 100px;
+        width: min(520px, 92%);
+        margin: 40px auto 100px;
     }
 
     .payment-card-box {
@@ -33,35 +33,44 @@
         gap: 8px;
     }
 
+    .payment-method-tabs {
+        display: flex;
+        background: #eee2cf;
+        border-bottom: 1px solid #eadcc8;
+    }
+
+    .pay-tab-btn {
+        flex: 1;
+        padding: 14px 10px;
+        text-align: center;
+        background: transparent;
+        border: none;
+        font-weight: 600;
+        font-size: 14px;
+        color: #6b7280;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .pay-tab-btn.active {
+        background: #fffaf3;
+        color: #b88a45;
+        border-top: 3px solid #b88a45;
+    }
+
     .payment-card-body {
         padding: 24px;
-    }
-
-    .qr-box-inner {
-        text-align: center;
-        margin-bottom: 22px;
-    }
-
-    .qr-box-inner img {
-        width: 210px;
-        height: 210px;
-        border-radius: 10px;
-        border: 1px solid var(--border, #eadcc8);
-        padding: 6px;
-        background: #fff;
-    }
-
-    .qr-hint-text {
-        font-size: 13px;
-        color: var(--muted, #938778);
-        margin-top: 8px;
     }
 
     .info-group-box {
         background: #ffffff;
         border: 1px solid var(--border, #eadcc8);
         border-radius: 10px;
-        padding: 14px 18px;
+        padding: 16px 18px;
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -82,49 +91,24 @@
         color: var(--navy, #243744);
     }
 
-    .info-row-item.highlight {
-        background: #fdf2f2;
-        padding: 8px 10px;
-        border-radius: 6px;
-        border: 1px dashed #fca5a5;
-    }
-
-    .info-row-item.highlight strong {
-        color: #dc2626;
-    }
-
-    .copy-btn-custom {
-        background: var(--cream-dark, #eee2cf);
-        border: none;
-        padding: 3px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        cursor: pointer;
-        font-weight: 600;
-        color: var(--navy, #243744);
-        margin-left: 6px;
-        transition: 0.2s;
-    }
-
-    .copy-btn-custom:hover {
-        background: var(--gold-light, #cdb894);
-    }
-
-    .warning-note-box {
-        margin-top: 16px;
-        font-size: 12px;
-        color: #8a6b2f;
-        background: #efe7d1;
-        padding: 10px 14px;
-        border-radius: 8px;
-        line-height: 1.5;
+    .qr-box-inner {
         text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .qr-box-inner img {
+        width: 200px;
+        height: 200px;
+        border-radius: 10px;
+        border: 1px solid var(--border, #eadcc8);
+        padding: 6px;
+        background: #fff;
     }
 
     .payment-card-footer {
         padding: 16px 24px;
-        background: var(--cream-dark, #eee2cf);
-        border-top: 1px solid var(--border, #eadcc8);
+        background: #eee2cf;
+        border-top: 1px solid #eadcc8;
         display: flex;
         gap: 12px;
     }
@@ -144,17 +128,61 @@
 
     .btn-action-secondary {
         background: #ffffff;
-        color: var(--navy, #243744);
-        border: 1px solid var(--border, #eadcc8);
+        color: #243744;
+        border: 1px solid #eadcc8;
     }
 
     .btn-action-primary {
-        background: var(--gold, #b88a45);
+        background: #b88a45;
         color: #ffffff;
     }
 
-    .btn-action:hover {
+    .btn-action-primary:hover {
         opacity: 0.9;
+    }
+
+    .custom-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .custom-modal-box {
+        background: #ffffff;
+        width: min(420px, 90%);
+        padding: 24px;
+        border-radius: 14px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-icon-warn {
+        font-size: 50px;
+        color: #eab308;
+        margin-bottom: 10px;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 8px;
+    }
+
+    .modal-desc {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
     }
 
     .success-container-box {
@@ -164,29 +192,18 @@
     }
 
     .success-content-card {
-        background: var(--cream, #fffaf3);
+        background: #fffaf3;
         padding: 45px 30px;
         border-radius: 16px;
-        border: 1px solid var(--border, #eadcc8);
+        border: 1px solid #eadcc8;
         box-shadow: 0 10px 30px rgba(36, 55, 68, 0.05);
         margin-bottom: 40px;
     }
 
     .success-content-card i {
         font-size: 75px;
-        color: var(--olive, #596a55);
+        color: #22c55e;
         margin-bottom: 15px;
-    }
-
-    .success-content-card h1 {
-        font-size: 26px;
-        color: var(--navy, #243744);
-        margin-bottom: 8px;
-    }
-
-    .success-content-card p {
-        color: var(--muted, #938778);
-        font-size: 14px;
     }
 </style>
 {% endblock %}
@@ -196,56 +213,85 @@
     <div id="payment-view" class="payment-page-wrapper">
         <div class="payment-card-box">
             <div class="payment-card-header">
-                <h2><i class='bx bx-wallet'></i> Quét mã thanh toán MoMo</h2>
+                <h2><i class='bx bx-credit-card-front'></i> Thanh toán đơn hàng</h2>
             </div>
 
-            <div class="payment-card-body">
+            <div class="payment-method-tabs">
+                <button type="button" class="pay-tab-btn active" id="tab-btn-momo" onclick="switchPayMethod('MOMO')">
+                    <i class='bx bx-qr-scan'></i> MoMo (QR)
+                </button>
+                <button type="button" class="pay-tab-btn" id="tab-btn-verd" onclick="switchPayMethod('VI_VERD')">
+                    <i class='bx bx-wallet'></i> Ví Verd
+                </button>
+            </div>
+
+            <div id="section-momo" class="payment-card-body">
                 <div class="qr-box-inner">
                     <img id="momo-qr-img" src="" alt="Mã QR MoMo">
-                    <div class="qr-hint-text">Mở <strong>App MoMo</strong> hoặc App Ngân hàng để quét mã</div>
+                    <div style="font-size: 13px; color: #6b7280; margin-top: 8px;">Mở <strong>App MoMo</strong> hoặc
+                        Ngân hàng để quét mã</div>
                 </div>
 
                 <div class="info-group-box">
                     <div class="info-row-item">
                         <span>Mã đơn hàng:</span>
-                        <strong id="pay-order-id">#—</strong>
+                        <strong id="momo-order-id">#—</strong>
                     </div>
                     <div class="info-row-item">
-                        <span>Số điện thoại MoMo:</span>
-                        <div>
-                            <strong id="pay-phone">0966053514</strong>
-                            <button type="button" class="copy-btn-custom" onclick="copyTextContent('pay-phone')">Sao
-                                chép</button>
-                        </div>
+                        <span>Số tiền cần thanh toán:</span>
+                        <strong id="momo-pay-amount" style="color: #d97706; font-size: 16px;">0 ₫</strong>
                     </div>
                     <div class="info-row-item">
-                        <span>Chủ tài khoản:</span>
-                        <strong id="pay-name">NGUYEN THI NGOC TRAM</strong>
-                    </div>
-                    <div class="info-row-item">
-                        <span>Số tiền cần trả:</span>
-                        <strong id="pay-amount" style="color: var(--gold); font-size: 16px;">0 ₫</strong>
-                    </div>
-                    <div class="info-row-item highlight">
                         <span>Nội dung chuyển khoản:</span>
-                        <div>
-                            <strong id="pay-memo">—</strong>
-                            <button type="button" class="copy-btn-custom" onclick="copyTextContent('pay-memo')"
-                                style="background: #fecaca; color: #991b1b;">Sao chép</button>
-                        </div>
+                        <strong id="momo-pay-memo" style="color: #dc2626;">—</strong>
                     </div>
                 </div>
+            </div>
 
-                <div class="warning-note-box">
-                    ⚠️ Vui lòng giữ nguyên <strong>Nội dung chuyển khoản</strong> để hệ thống tự động nhận diện thanh
-                    toán thành công.
+            <div id="section-verd" class="payment-card-body" style="display: none;">
+                <div class="info-group-box">
+                    <div class="info-row-item">
+                        <span>Mã đơn hàng:</span>
+                        <strong id="verd-order-id">#—</strong>
+                    </div>
+                    <div class="info-row-item">
+                        <span>Số tiền cần thanh toán:</span>
+                        <strong id="verd-pay-amount" style="color: #d97706; font-size: 16px;">0 ₫</strong>
+                    </div>
+                    <hr style="border: 0; border-top: 1px dashed #e5e7eb; margin: 4px 0;">
+                    <div class="info-row-item">
+                        <span>Số dư Ví Verd hiện tại:</span>
+                        <strong id="verd-wallet-balance" style="color: #16a34a; font-size: 15px;">0 ₫</strong>
+                    </div>
+                    <div class="info-row-item" id="verd-status-row">
+                        <span>Trạng thái số dư:</span>
+                        <strong id="verd-status-text" style="color: #16a34a;">Đủ điều kiện thanh toán</strong>
+                    </div>
                 </div>
             </div>
 
             <div class="payment-card-footer">
-                <a href="#" id="btn-cancel-pay" class="btn-action btn-action-secondary">Quay lại mua sắm</a>
-                <button type="button" class="btn-action btn-action-primary" onclick="finishPayment()">Tôi đã chuyển
-                    khoản xong</button>
+                <a href="/products" id="btn-cancel-pay" class="btn-action btn-action-secondary">Quay lại</a>
+                <button type="button" id="btn-confirm-payment" class="btn-action btn-action-primary"
+                    onclick="handlePaymentSubmit()">
+                    Tôi đã chuyển khoản xong
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="wallet-insufficient-modal" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-box">
+            <i class='bx bx-error-circle modal-icon-warn'></i>
+            <h3 class="modal-title">Số dư Ví Verd không đủ!</h3>
+            <p class="modal-desc" id="wallet-modal-desc">
+                Số dư hiện tại của bạn không đủ để thanh toán đơn hàng này. Bạn có muốn nạp thêm tiền vào ví không?
+            </p>
+            <div class="modal-actions">
+                <button type="button" class="btn-action btn-action-secondary" onclick="closeWalletModal()">Đổi phương
+                    thức</button>
+                <button type="button" class="btn-action btn-action-primary" onclick="goToProfileWallet()">Nạp tiền
+                    ngay</button>
             </div>
         </div>
     </div>
@@ -253,20 +299,13 @@
     <div id="success-view" style="display: none;" class="success-container-box">
         <div class="success-content-card">
             <i class='bx bx-check-circle'></i>
-            <h1>Đặt hàng thành công!</h1>
-            <p>Hệ thống đã ghi nhận thông tin thanh toán cho đơn hàng <strong id="success-order-id">#—</strong>. Chúng
-                tôi sẽ xử lý đơn hàng sớm nhất.</p>
+            <h1>Thanh toán & Đặt hàng thành công!</h1>
+            <p>Hệ thống đã xác nhận thanh toán cho đơn hàng <strong id="success-order-id">#—</strong>. Đơn hàng đang
+                được xử lý.</p>
             <div style="margin-top: 25px;">
                 <a href="/products" class="btn-action btn-action-primary"
                     style="display: inline-block; width: 220px; text-decoration: none;">Tiếp tục mua sắm</a>
             </div>
-        </div>
-
-        <div style="text-align: left; margin-bottom: 20px;">
-            <p style="color: var(--gold); font-size: 11px; letter-spacing: 2px; font-weight: 600;">YOU MAY ALSO LIKE</p>
-            <h2 style="font-size: 22px; color: var(--navy);">Có thể bạn cũng thích</h2>
-        </div>
-        <div id="recommended-grid" class="recommended-grid">
         </div>
     </div>
 </main>

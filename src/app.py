@@ -113,6 +113,11 @@ def admin_users_page():
     return render_template("admin/users.html")
 
 
+@app.route("/admin/deposits")
+def admin_deposits_page():
+    return render_template("admin/deposits.html")
+
+
 @app.route("/login")
 def login():
     return render_template("auth/login.html")

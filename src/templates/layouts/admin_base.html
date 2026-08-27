@@ -60,10 +60,6 @@
 
             </div>
 
-            <div class="admin-menu-label">
-                QUẢN LÝ
-            </div>
-
             <nav class="admin-menu">
 
                 <a href="/admin/dashboard"
@@ -95,6 +91,13 @@
                     <i class='bx bx-user'></i>
                     <span>Người dùng</span>
                 </a>
+
+
+                <a href="/admin/deposits" class="{% if '/admin/deposits' in request.path %}active{% endif %}">
+                    <i class='bx bx-wallet'></i>
+                    <span>Ví người dùng</span>
+                </a>
+
 
             </nav>
 

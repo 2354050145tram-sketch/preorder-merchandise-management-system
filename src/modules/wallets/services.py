@@ -90,39 +90,6 @@ class WalletService:
         return db.session.scalars(stmt).all()
 
     @staticmethod
-    def create_deposit_request(user_id, amount, description=None):
-        wallet = WalletService.get_wallet_by_user(user_id)
-
-        try:
-            amount = Decimal(str(amount))
-        except (InvalidOperation, TypeError, ValueError):
-            raise ValueError("Số tiền nạp không hợp lệ")
-
-        if not amount.is_finite() or amount <= 0:
-            raise ValueError("Số tiền nạp phải lớn hơn 0")
-
-        transaction = WalletTransaction(
-            wallet_id=wallet.wallet_id,
-            transaction_type="NẠP TIỀN",
-            amount=amount,
-            balance_before=wallet.balance,
-            balance_after=wallet.balance,
-            transaction_status="CHỜ XỬ LÝ",
-            transaction_code=str(uuid4()),
-            description=description,
-        )
-
-        try:
-            db.session.add(transaction)
-            db.session.commit()
-
-            return transaction
-
-        except Exception:
-            db.session.rollback()
-            raise
-
-    @staticmethod
     def approve_deposit(wallet_transaction_id):
         transaction = db.session.get(WalletTransaction, wallet_transaction_id)
 
@@ -441,3 +408,112 @@ class WalletService:
         except Exception:
             db.session.rollback()
             raise
+
+    @staticmethod
+    def create_deposit_request(user_id, amount, description=None):
+        wallet = WalletService.get_wallet_by_user(user_id)
+
+        try:
+            amount = Decimal(str(amount))
+        except (InvalidOperation, TypeError, ValueError):
+            raise ValueError("Số tiền nạp không hợp lệ")
+
+        if not amount.is_finite() or amount <= 0:
+            raise ValueError("Số tiền nạp phải lớn hơn 0")
+
+        import time
+
+        trans_code = f"NAP_{user_id}_{int(time.time())}"
+
+        transaction = WalletTransaction(
+            wallet_id=wallet.wallet_id,
+            transaction_type="NẠP TIỀN",
+            amount=amount,
+            balance_before=wallet.balance,
+            balance_after=wallet.balance,
+            transaction_status="CHỜ XỬ LÝ",
+            transaction_code=trans_code,
+            description=description or f"Nạp tiền Ví Verd (Mã: {trans_code})",
+        )
+
+        try:
+            db.session.add(transaction)
+            db.session.commit()
+            return transaction
+        except Exception:
+            db.session.rollback()
+            raise
+
+    @staticmethod
+    def get_deposit_by_id(user_id, wallet_transaction_id):
+        wallet = WalletService.get_wallet_by_user(user_id)
+        stmt = select(WalletTransaction).where(
+            WalletTransaction.wallet_transaction_id == wallet_transaction_id,
+            WalletTransaction.wallet_id == wallet.wallet_id,
+            WalletTransaction.transaction_type == "NẠP TIỀN",
+        )
+        transaction = db.session.scalar(stmt)
+        if not transaction:
+            raise ValueError("Yêu cầu nạp tiền không tồn tại")
+        return transaction
+
+    @staticmethod
+    def cancel_deposit_request(user_id, wallet_transaction_id):
+        wallet = WalletService.get_wallet_by_user(user_id)
+        transaction = db.session.get(WalletTransaction, wallet_transaction_id)
+
+        if not transaction or transaction.wallet_id != wallet.wallet_id:
+            raise ValueError("Giao dịch không tồn tại")
+
+        if transaction.transaction_type != "NẠP TIỀN":
+            raise ValueError("Giao dịch không phải yêu cầu nạp tiền")
+
+        if transaction.transaction_status != "CHỜ XỬ LÝ":
+            raise ValueError("Không thể hủy giao dịch đã được xử lý")
+
+        transaction.transaction_status = "ĐÃ HỦY"
+        try:
+            db.session.commit()
+            return transaction
+        except Exception:
+            db.session.rollback()
+            raise
+
+    @staticmethod
+    def get_all_deposits_admin(status=None):
+        stmt = (
+            select(WalletTransaction, User)
+            .join(Wallet, WalletTransaction.wallet_id == Wallet.wallet_id)
+            .join(User, Wallet.user_id == User.user_id)
+            .where(WalletTransaction.transaction_type == "NẠP TIỀN")
+        )
+        if status:
+            stmt = stmt.where(WalletTransaction.transaction_status == status)
+
+        stmt = stmt.order_by(
+            WalletTransaction.created_at.desc(),
+            WalletTransaction.wallet_transaction_id.desc(),
+        )
+        results = db.session.execute(stmt).all()
+
+        deposits = []
+        for trans, user in results:
+            deposits.append(
+                {
+                    "wallet_transaction_id": trans.wallet_transaction_id,
+                    "wallet_id": trans.wallet_id,
+                    "user_id": user.user_id,
+                    "username": user.username,
+                    "email": user.email,
+                    "amount": float(trans.amount),
+                    "balance_before": float(trans.balance_before),
+                    "balance_after": float(trans.balance_after),
+                    "transaction_status": trans.transaction_status,
+                    "transaction_code": trans.transaction_code,
+                    "description": trans.description,
+                    "created_at": (
+                        trans.created_at.isoformat() if trans.created_at else None
+                    ),
+                }
+            )
+        return deposits

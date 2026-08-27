@@ -105,7 +105,6 @@ function togglePreorderTabsByStatus() {
     }
 }
 
-// 1. TẢI THÔNG TIN PREORDER & LỊCH SỬ TIẾN ĐỘ
 async function fetchPreorderInfo(productId) {
     const token = getAdminToken();
     try {
@@ -158,7 +157,6 @@ function renderProgressHistory(preorder) {
     `;
 }
 
-// 2. UPLOAD ẢNH TIẾN ĐỘ & GỬI NOTIFICATION (Tự động tạo Preorder nếu chưa có)
 function bindPreorderProgressEvents() {
     galleryAddBtn.addEventListener("click", () => {
         if (progressGalleryImages.length >= 10) {
@@ -340,10 +338,14 @@ async function loadPreorderCustomers(productId) {
     }
 }
 
-// 4. MỞ TRANG CHI TIẾT SẢN PHẨM (Đảm bảo nhấp đúp luôn mở form)
 async function openEditProduct(productId) {
     const product = adminProducts.find(item => Number(item.product_id) === Number(productId));
     if (!product) return;
+
+    const urlInput = document.getElementById("product-image-url-input");
+    if (urlInput) {
+        urlInput.value = (product.image && product.image.startsWith("http")) ? product.image : "";
+    }
 
     editingProduct = product;
     document.getElementById("edit-product-id").value = product.product_id;
@@ -410,6 +412,9 @@ function bindImageUploadEvents() {
         const file = e.target.files[0];
         if (!file) return;
 
+        const urlInput = document.getElementById("product-image-url-input");
+        if (urlInput) urlInput.value = "";
+
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = new Image();
@@ -434,6 +439,15 @@ function bindImageUploadEvents() {
 
                 currentProductImageBase64 = canvas.toDataURL("image/jpeg", 0.85);
                 renderImagePreview(currentProductImageBase64);
+
+                const urlInput = document.getElementById("product-image-url-input");
+                urlInput?.addEventListener("input", (e) => {
+                    const url = e.target.value.trim();
+                    if (url) {
+                        currentProductImageBase64 = url; // Gán thẳng link URL vào biến lưu
+                        renderImagePreview(url);
+                    }
+                });
             };
             img.src = event.target.result;
         };
@@ -635,7 +649,11 @@ async function loadProducts(showInitialSpinner = false) {
         adminProducts = rawProducts.sort((a, b) => {
             const aActive = a.active !== false && a.active !== 0 ? 1 : 0;
             const bActive = b.active !== false && b.active !== 0 ? 1 : 0;
-            return bActive - aActive;
+            const idA = Number(a.product_id || 0);
+            const idB = Number(b.product_id || 0);
+
+            if (bActive !== aActive) return bActive - aActive;
+            return idB - idA;
         });
 
         renderProducts();
@@ -733,6 +751,9 @@ function openCreateProduct() {
     currentProductImageBase64 = "";
     renderImagePreview("");
     fileInput.value = "";
+
+    const urlInput = document.getElementById("product-image-url-input");
+    if (urlInput) urlInput.value = "";
 
     currentSelectedTags = [];
     renderProductTags();

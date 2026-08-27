@@ -158,14 +158,14 @@ function renderOrderPaginatedTable() {
     });
 
     filtered.sort((a, b) => {
-        const dateA = new Date(a.order_date || a.created_at || 0).getTime();
-        const dateB = new Date(b.order_date || b.created_at || 0).getTime();
+        const idA = Number(a.order_id || 0);
+        const idB = Number(b.order_id || 0);
 
-        if (sortType === "newest") return (dateB - dateA) || (b.order_id - a.order_id);
-        if (sortType === "oldest") return (dateA - dateB) || (a.order_id - b.order_id);
-        if (sortType === "price_desc") return (b.total_amount || 0) - (a.total_amount || 0);
-        if (sortType === "price_asc") return (a.total_amount || 0) - (b.total_amount || 0);
-        return 0;
+        if (sortType === "oldest") return idA - idB;
+        if (sortType === "price_desc") return (Number(b.total_amount || 0) - Number(a.total_amount || 0)) || (idB - idA);
+        if (sortType === "price_asc") return (Number(a.total_amount || 0) - Number(b.total_amount || 0)) || (idB - idA);
+        
+        return idB - idA;
     });
 
     const totalOrders = filtered.length;
@@ -305,6 +305,7 @@ async function openOrderDetail(orderId) {
         renderHeaderStatusActions(order);
         renderOrderItems(items);
         renderPaymentSummaryDirect(order);
+        renderShippingList(items);
 
         switchOrderTab("items");
         showOrderDetailView();
@@ -576,6 +577,99 @@ async function confirmPaymentAdmin(paymentId) {
         showOrderToast(e.message);
     }
 }
+
+function renderShippingList(items) {
+    const tbody = document.getElementById("order-shipping-table-body");
+    if (!tbody) return;
+
+    const shippedItems = items.filter(i => i.tracking_code);
+
+    if (!shippedItems.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--admin-muted, #6b7280); padding: 15px;">Chưa có kiện hàng / mã vận đơn nào.</td></tr>`;
+        return;
+    }
+
+    const grouped = {};
+    shippedItems.forEach(i => {
+        if (!grouped[i.tracking_code]) {
+            grouped[i.tracking_code] = {
+                tracking_code: i.tracking_code,
+                shipping_method: i.shipping_method,
+                shipping_status: i.shipping_status || "ĐANG LẤY HÀNG",
+                products: []
+            };
+        }
+        grouped[i.tracking_code].products.push(i.product?.product_name || `Sản phẩm #${i.product_id} (x${i.quantity})`);
+    });
+
+    tbody.innerHTML = Object.values(grouped).map(pkg => {
+        let nextStatus = null;
+        let btnText = "";
+        if (pkg.shipping_status === "ĐANG LẤY HÀNG") {
+            nextStatus = "ĐANG GIAO HÀNG";
+            btnText = "Chuyển sang: Đang giao hàng";
+        } else if (pkg.shipping_status === "ĐANG GIAO HÀNG") {
+            nextStatus = "ĐÃ GIAO";
+            btnText = "Xác nhận: Đã giao";
+        }
+
+        return `
+            <tr>
+                <td><strong>${escapeOrderHTML(pkg.tracking_code)}</strong></td>
+                <td>${escapeOrderHTML(pkg.shipping_method || "TIÊU CHUẨN")}</td>
+                <td style="font-size: 12px; color: #4b5563;">${pkg.products.map(p => escapeOrderHTML(p)).join("<br>")}</td>
+                <td>
+                    <span class="admin-product-status ${pkg.shipping_status === 'ĐÃ GIAO' ? 'hoan-thanh' : 'dang-xu-ly'}">
+                        ${escapeOrderHTML(pkg.shipping_status)}
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    ${nextStatus ? `
+                        <button type="button" class="admin-btn admin-btn-primary" style="padding: 4px 10px; font-size: 12px;"
+                            onclick="updateShippingStatusAdmin('${pkg.tracking_code}', '${nextStatus}')">
+                            ${btnText}
+                        </button>
+                    ` : '<span style="color: #22c55e; font-weight: 600; font-size: 12px;"><i class="bx bx-check"></i> Đã hoàn tất giao</span>'}
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+async function updateShippingStatusAdmin(trackingCode, newStatus) {
+    if (!confirm(`Xác nhận chuyển trạng thái mã vận đơn "${trackingCode}" sang "${newStatus}"?`)) return;
+    const token = getAdminToken();
+
+    try {
+        const res = await fetch(`/api/orders/admin/shipping/${trackingCode}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({ shipping_status: newStatus })
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Không thể cập nhật trạng thái vận chuyển");
+
+        showOrderToast("Cập nhật trạng thái vận chuyển thành công!");
+        if (currentViewingOrder) await openOrderDetail(currentViewingOrder.order_id);
+    } catch (e) {
+        showOrderToast(e.message);
+    }
+}
+
+function showOrderToast(msg) {
+    const toast = document.getElementById("admin-order-toast");
+    if (!toast) {
+        alert(msg);
+        return;
+    }
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3000);
+}
+
+window.updateShippingStatusAdmin = updateShippingStatusAdmin;
 
 window.goToOrderPage = goToOrderPage;
 window.openOrderDetail = openOrderDetail;

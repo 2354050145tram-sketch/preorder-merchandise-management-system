@@ -1,0 +1,146 @@
+{% extends "layouts/admin_base.html" %}
+
+{% block title %}Duyệt nạp Ví Verd - Verdia Admin{% endblock %}
+
+{% block breadcrumb %}
+<span>Ví Verd</span>
+<i class='bx bx-chevron-right'></i>
+<strong>Duyệt nạp tiền</strong>
+{% endblock %}
+
+{% block control_panel %}
+<section class="admin-control-panel">
+    <div class="admin-control-left">
+        <button type="button" id="reload-deposits-btn" class="admin-btn admin-btn-secondary">
+            <i class='bx bx-refresh'></i> Làm mới
+        </button>
+    </div>
+
+    <div class="admin-control-right">
+        <select id="deposit-status-filter" class="admin-select">
+            <option value="">Tất cả trạng thái</option>
+            <option value="CHỜ XỬ LÝ" selected>Chờ xử lý (Chưa duyệt)</option>
+            <option value="THÀNH CÔNG">Thành công (Đã duyệt)</option>
+            <option value="ĐÃ HỦY">Đã hủy (Khách hủy)</option>
+        </select>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="product-view">
+    <section class="admin-panel product-list-panel">
+        <div class="admin-product-table-wrapper">
+            <table class="admin-product-table" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Mã GD</th>
+                        <th style="width: 25%;">Khách hàng</th>
+                        <th style="width: 15%;">Số tiền nạp</th>
+                        <th style="width: 20%;">Mã chuyển khoản (Nội dung)</th>
+                        <th style="width: 15%;">Thời gian</th>
+                        <th style="width: 15%; text-align: center;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-deposits-table-body">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px;">Đang tải danh sách nạp tiền...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getAdminToken() {
+        return localStorage.getItem("access_token") || localStorage.getItem("token");
+    }
+
+    function formatPrice(val) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
+    }
+
+    async function loadDeposits() {
+        const tbody = document.getElementById("admin-deposits-table-body");
+        const status = document.getElementById("deposit-status-filter").value;
+        const token = getAdminToken();
+
+        try {
+            const res = await fetch(`/api/wallets/admin/deposits?status=${encodeURIComponent(status)}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const result = await res.json();
+            const list = result.data?.deposits || [];
+
+            if (!list.length) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #6b7280; padding: 20px;">Không có yêu cầu nạp tiền nào.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(item => {
+                let statusBadge = "";
+                let actionBtn = "";
+
+                if (item.transaction_status === "CHỜ XỬ LÝ") {
+                    statusBadge = `<span class="admin-product-status cho-xac-nhan">CHỜ DUYỆT</span>`;
+                    actionBtn = `
+                    <button type="button" class="admin-btn admin-btn-primary" style="padding: 4px 10px; font-size: 12px;" onclick="approveDeposit(${item.wallet_transaction_id})">
+                        <i class='bx bx-check'></i> Duyệt nạp tiền
+                    </button>
+                `;
+                } else if (item.transaction_status === "THÀNH CÔNG") {
+                    statusBadge = `<span class="admin-product-status hoan-thanh">THÀNH CÔNG</span>`;
+                    actionBtn = `<span style="color: #16a34a; font-size: 12px; font-weight: 600;"><i class='bx bx-check-double'></i> Đã cộng ví</span>`;
+                } else if (item.transaction_status === "ĐÃ HỦY") {
+                    statusBadge = `<span class="admin-product-status da-huy">ĐÃ HỦY</span>`;
+                    actionBtn = `<span style="color: #dc2626; font-size: 12px;">Khách đã hủy</span>`;
+                }
+
+                return `
+                <tr>
+                    <td><strong>#${item.wallet_transaction_id}</strong></td>
+                    <td>
+                        <strong>${item.username}</strong>
+                        <div style="font-size: 11px; color: #6b7280;">${item.email}</div>
+                    </td>
+                    <td style="font-weight: 700; color: #16a34a; font-size: 14px;">+${formatPrice(item.amount)}</td>
+                    <td><strong style="color: #dc2626;">${item.transaction_code}</strong></td>
+                    <td style="font-size: 12px; color: #6b7280;">${item.created_at ? item.created_at.replace('T', ' ').slice(0, 19) : '—'}</td>
+                    <td style="text-align: center;">${actionBtn}</td>
+                </tr>
+            `;
+            }).join("");
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red; padding: 20px;">Lỗi tải dữ liệu.</td></tr>`;
+        }
+    }
+
+    async function approveDeposit(transId) {
+        if (!confirm(`Xác nhận duyệt nạp tiền cho giao dịch #${transId}? Số dư ví của khách sẽ được cộng ngay lập tức.`)) return;
+        const token = getAdminToken();
+
+        try {
+            const res = await fetch(`/api/wallets/admin/deposits/${transId}/approve`, {
+                method: "PUT",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.message || "Không thể duyệt nạp tiền");
+
+            alert("Duyệt nạp tiền thành công! Đã cộng số dư cho khách hàng.");
+            loadDeposits();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadDeposits();
+        document.getElementById("reload-deposits-btn")?.addEventListener("click", loadDeposits);
+        document.getElementById("deposit-status-filter")?.addEventListener("change", loadDeposits);
+    });
+</script>
+{% endblock %}

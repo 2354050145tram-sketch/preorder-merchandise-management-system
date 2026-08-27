@@ -6,7 +6,6 @@ let currentViewingInv = null;
 let invSearchDebounce = null;
 let invFetchController = null;
 
-// DOM Elements
 const invListView = document.getElementById("inv-list-view");
 const invFormView = document.getElementById("inv-form-view");
 const invListControlPanel = document.getElementById("inv-list-control-panel");
@@ -59,7 +58,6 @@ function bindInvEvents() {
     document.getElementById("reload-inv-btn")?.addEventListener("click", () => loadAdminInventory(true));
     document.getElementById("discard-inv-btn")?.addEventListener("click", showInvListView);
 
-    // Tìm kiếm
     const keywordInput = document.getElementById("admin-inv-keyword");
     keywordInput?.addEventListener("input", () => {
         clearTimeout(invSearchDebounce);
@@ -69,19 +67,16 @@ function bindInvEvents() {
         }, 300);
     });
 
-    // Lọc trạng thái Backend
     document.getElementById("admin-inv-filter")?.addEventListener("change", () => {
         currentInvPage = 1;
         loadAdminInventory(false);
     });
 
-    // Sắp xếp Client
     document.getElementById("admin-inv-sort")?.addEventListener("change", () => {
         currentInvPage = 1;
         renderInvPaginatedTable();
     });
 
-    // Thay đổi loại thao tác kho
     document.getElementById("inv-action-type")?.addEventListener("change", (e) => {
         const type = e.target.value;
         const priceField = document.getElementById("inv-price-field-block");
@@ -101,7 +96,6 @@ function bindInvEvents() {
 
     document.getElementById("btn-submit-inv-action")?.addEventListener("click", submitInvAction);
 
-    // Chuyển tab
     document.querySelectorAll(".product-tab").forEach(button => {
         button.addEventListener("click", () => {
             switchInvTab(button.dataset.invTab);
@@ -138,7 +132,6 @@ function showInvDetailView() {
     if (invFormControlPanel) invFormControlPanel.style.setProperty("display", "flex", "important");
 }
 
-// 1. TẢI DỮ LIỆU TỒN KHO TỪ BACKEND
 async function loadAdminInventory(showSpinner = false) {
     if (invFetchController) invFetchController.abort();
     invFetchController = new AbortController();
@@ -183,22 +176,24 @@ async function loadAdminInventory(showSpinner = false) {
     }
 }
 
-// 2. RENDER BẢNG VÀ PHÂN TRANG
 function renderInvPaginatedTable() {
-    const sortType = document.getElementById("admin-inv-sort")?.value || "qty_desc";
+    const sortType = document.getElementById("admin-inv-sort")?.value || "id_desc";
 
     let sortedList = [...allInvData];
     sortedList.sort((a, b) => {
+        const idA = Number(a.product_id || 0);
+        const idB = Number(b.product_id || 0);
         const qtyA = Number(a.quantity || 0);
         const qtyB = Number(b.quantity || 0);
         const nameA = String(a.product?.product_name || a.product_name || "");
         const nameB = String(b.product?.product_name || b.product_name || "");
 
-        if (sortType === "qty_desc") return qtyB - qtyA;
-        if (sortType === "qty_asc") return qtyA - qtyB;
-        if (sortType === "name_asc") return nameA.localeCompare(nameB);
-        if (sortType === "name_desc") return nameB.localeCompare(nameA);
-        return 0;
+        if (sortType === "qty_desc") return (qtyB - qtyA) || (idB - idA);
+        if (sortType === "qty_asc") return (qtyA - qtyB) || (idB - idA);
+        if (sortType === "name_asc") return nameA.localeCompare(nameB) || (idB - idA);
+        if (sortType === "name_desc") return nameB.localeCompare(nameA) || (idB - idA);
+        
+        return idB - idA;
     });
 
     const total = sortedList.length;
@@ -295,7 +290,6 @@ function goToInvPage(page) {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// 3. MỞ CHI TIẾT KHO & LẤY NHẬT KÝ GIAO DỊCH TỪ BACKEND
 async function openInvDetail(productId) {
     const item = allInvData.find(i => Number(i.product_id) === Number(productId));
     if (!item) return;
@@ -310,14 +304,12 @@ async function openInvDetail(productId) {
     document.getElementById("inv-product-id-display").textContent = `#${item.product_id}`;
     document.getElementById("inv-current-qty-display").textContent = item.quantity || 0;
 
-    // Reset Form
     document.getElementById("inv-action-type").value = "IMPORT";
     document.getElementById("inv-action-qty").value = "";
     document.getElementById("inv-action-price").value = item.price ? Number(item.price) : "";
     document.getElementById("inv-price-field-block").style.display = "flex";
     document.getElementById("inv-action-qty-label").textContent = "Số lượng nhập thêm (+)";
 
-    // Tải nhật ký giao dịch
     await loadInventoryTransactions(item.product_id);
 
     switchInvTab("adjust");
@@ -374,7 +366,6 @@ async function loadInventoryTransactions(productId) {
     }
 }
 
-// 4. THỰC HIỆN THAO TÁC KHO (KẾT NỐI ROUTE IMPORT, EXPORT, QUANTITY)
 async function submitInvAction() {
     if (!currentViewingInv) return;
     const actionType = document.getElementById("inv-action-type")?.value;

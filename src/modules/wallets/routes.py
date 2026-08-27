@@ -263,3 +263,55 @@ def approve_withdraw(wallet_transaction_id):
             "Có lỗi xảy ra khi duyệt rút tiền",
             500,
         )
+
+
+@wallet_bp.route("/deposit/<int:transaction_id>", methods=["GET"])
+@jwt_required()
+def get_deposit_detail(transaction_id):
+    try:
+        user_id = int(get_jwt_identity())
+        transaction = WalletService.get_deposit_by_id(user_id, transaction_id)
+        return response_success(
+            {"transaction": serialize_wallet_transaction(transaction)},
+            "Lấy chi tiết yêu cầu nạp tiền thành công",
+            200,
+        )
+    except ValueError as error:
+        return response_error(str(error), 404)
+    except Exception as error:
+        return response_error(f"Lỗi: {str(error)}", 500)
+
+
+@wallet_bp.route("/deposit/<int:transaction_id>/cancel", methods=["PUT"])
+@jwt_required()
+def cancel_deposit(transaction_id):
+    try:
+        user_id = int(get_jwt_identity())
+        transaction = WalletService.cancel_deposit_request(user_id, transaction_id)
+        return response_success(
+            {"transaction": serialize_wallet_transaction(transaction)},
+            "Hủy yêu cầu nạp tiền thành công",
+            200,
+        )
+    except ValueError as error:
+        return response_error(str(error), 400)
+    except Exception as error:
+        return response_error(f"Lỗi: {str(error)}", 500)
+
+
+@wallet_bp.route("/admin/deposits", methods=["GET"])
+@jwt_required()
+def get_admin_deposits():
+    try:
+        check_admin()
+        status = request.args.get("status")
+        deposits = WalletService.get_all_deposits_admin(status=status)
+        return response_success(
+            {"deposits": deposits},
+            "Lấy danh sách yêu cầu nạp tiền thành công",
+            200,
+        )
+    except PermissionError as error:
+        return response_error(str(error), 403)
+    except Exception as error:
+        return response_error(f"Lỗi: {str(error)}", 500)

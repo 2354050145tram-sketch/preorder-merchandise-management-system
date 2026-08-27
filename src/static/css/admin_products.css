@@ -165,7 +165,6 @@
     filter: grayscale(100%);
 }
 
-/* KHỐI SẢN PHẨM: GOM HÌNH VÀ TÊN NẰM TRÊN MỘT HÀNG NGANG CHUẨN XÁC */
 .admin-product-cell {
     display: flex !important;
     align-items: center !important;
@@ -322,7 +321,6 @@
     font-size: 11px !important;
 }
 
-/* Các thành phần form chung bên dưới giữ nguyên chuẩn */
 .product-form-mode {
     color: var(--admin-muted);
     font-size: 12px;

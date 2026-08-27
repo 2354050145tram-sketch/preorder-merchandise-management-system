@@ -1,6 +1,6 @@
 from config import db
 from decimal import Decimal
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, time
 from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload
 from modules.orders.models import Order, OrderItem, Payment
@@ -8,6 +8,7 @@ from modules.users.models import User
 from modules.products.models import Product
 from modules.preorders.models import PreOrder
 from modules.inventories.models import Inventory, InventoryTransaction
+from modules.wallets.models import WalletTransaction
 from modules.wallets.services import WalletService
 
 
@@ -222,7 +223,32 @@ class OrderService:
         allowed_statuses = allowed_transitions.get(order.order_status, [])
 
         if order_status not in allowed_statuses:
-            raise ValueError("Không thể chuyển sang trạng thái đơn hàng này")
+            raise ValueError("Không thể chuyển trạng thái đơn hàng này")
+
+        if order_status == "ĐÃ XÁC NHẬN":
+            summary = PaymentService.get_order_payment_summary(order_id)
+            if summary["remaining_amount"] > 0:
+                import time
+
+                auto_payment = Payment(
+                    order_id=order_id,
+                    amount=summary["remaining_amount"],
+                    payment_method="MOMO",
+                    payment_type="THANH TOÁN FULL",
+                    payment_status="ĐANG THANH TOÁN",
+                    transaction_id=f"ADMIN_CONFIRM_{order_id}_{int(time.time())}",
+                )
+                db.session.add(auto_payment)
+                db.session.flush()
+                PaymentService.apply_successful_payment(auto_payment)
+
+        order.order_status = order_status
+        try:
+            db.session.commit()
+            return order
+        except Exception:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def update_shipping_info(
@@ -484,8 +510,15 @@ class PaymentService:
             )
         )
 
+        user = db.session.get(User, order.user_id)
+
+        wallet_balance = 0.0
+        if user and user.wallet and user.wallet.balance is not None:
+            wallet_balance = float(user.wallet.balance)
+
         return {
             "order": order,
+            "wallet_balance": wallet_balance,
             "preorder_amount": preorder_amount,
             "in_stock_amount": in_stock_amount,
             "shipping_fee": shipping_fee,
@@ -550,42 +583,40 @@ class PaymentService:
         if order.order_status == "HOÀN THÀNH":
             raise ValueError("Đơn hàng đã hoàn thành")
 
-        if payment_method != "MOMO":
+        if payment_method not in ["MOMO", "VÍ VERD"]:
             raise ValueError("Phương thức thanh toán không hợp lệ")
 
-        transaction_id = (
-            str(transaction_id).strip() if transaction_id is not None else ""
-        )
-
-        if not transaction_id:
-            raise ValueError("Mã giao dịch không được để trống")
-
-        existing_transaction = db.session.scalar(
-            select(Payment).where(Payment.transaction_id == transaction_id)
-        )
-
-        if existing_transaction:
-            raise ValueError("Mã giao dịch đã tồn tại")
-
-        pending_payment = db.session.scalar(
-            select(Payment).where(
-                Payment.order_id == order_id,
-                Payment.payment_status == "ĐANG THANH TOÁN",
+        if payment_method in ["VÍ VERD"]:
+            trans = WalletService.pay_with_wallet(
+                user_id=order.user_id, order_id=order_id, payment_type=payment_type
             )
-        )
 
-        if pending_payment:
-            raise ValueError("Đơn hàng đang có giao dịch " "thanh toán chưa hoàn tất")
+            payment = db.session.scalar(
+                select(Payment).where(Payment.transaction_id == trans.transaction_code)
+            )
+            return payment
 
         amount = PaymentService.calculate_payment_amount(
             order_id=order_id,
             payment_type=payment_type,
         )
 
+        transaction_id = (
+            str(transaction_id).strip()
+            if transaction_id
+            else f"MOMO_{order_id}_{int(time.time())}"
+        )
+
+        existing_transaction = db.session.scalar(
+            select(Payment).where(Payment.transaction_id == transaction_id)
+        )
+        if existing_transaction:
+            transaction_id = f"{transaction_id}_{int(time.time())}"
+
         payment = Payment(
             order_id=order_id,
             amount=amount,
-            payment_method=payment_method,
+            payment_method="MOMO",
             payment_type=payment_type,
             payment_status="ĐANG THANH TOÁN",
             transaction_id=transaction_id,
@@ -593,8 +624,11 @@ class PaymentService:
 
         try:
             db.session.add(payment)
-            db.session.commit()
+            db.session.flush()
 
+            PaymentService.apply_successful_payment(payment)
+
+            db.session.commit()
             return payment
 
         except Exception:
