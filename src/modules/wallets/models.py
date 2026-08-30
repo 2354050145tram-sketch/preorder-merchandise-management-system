@@ -23,6 +23,9 @@ class WalletTransaction(db.Model):
     wallet_transaction_id = Column(Integer, primary_key=True, autoincrement=True)
     wallet_id = Column(Integer, ForeignKey("wallets.wallet_id"), nullable=False)
     order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=True)
+    order_item_id = Column(
+        Integer, ForeignKey("order_items.order_item_id"), nullable=True, unique=True
+    )
     transaction_type = Column(
         Enum("NẠP TIỀN", "THANH TOÁN", "RÚT TIỀN", "HOÀN TIỀN"), nullable=False
     )
@@ -40,3 +43,4 @@ class WalletTransaction(db.Model):
 
     wallet = db.relationship("Wallet", back_populates="transactions")
     order = db.relationship("Order", back_populates="wallet_transactions")
+    order_item = db.relationship("OrderItem")

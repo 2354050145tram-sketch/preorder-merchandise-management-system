@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, Column, String, Enum, ForeignKey
+from sqlalchemy import Integer, Column, String, Enum, ForeignKey, UniqueConstraint
 from config import db
 from modules.base_model import BaseModel
 
@@ -17,13 +17,20 @@ class Role(BaseModel):
 
 class User(BaseModel):
     __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint(
+            "provider",
+            "provider_user_id",
+            name="uq_user_provider_account",
+        ),
+    )
 
     user_id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), nullable=False, unique=True)
     username = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
     provider = Column(
-        Enum("LOCAL", "FACEBOOK", "GOOGLE", "INSTAGRAM", "X"),
+        Enum("LOCAL", "FACEBOOK", "GOOGLE"),
         nullable=False,
         default="LOCAL",
     )
@@ -41,6 +48,9 @@ class User(BaseModel):
     user_notifications = db.relationship(
         "UserNotification", back_populates="user", cascade="all, delete-orphan"
     )
+    cart = db.relationship(
+        "Cart", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
     def __str__(self):
         return self.username
@@ -54,8 +64,8 @@ class Profile(db.Model):
     )
     full_name = Column(String(255), nullable=False)
     avatar = Column(String(255), nullable=True)
-    phone_num = Column(String(10), nullable=False, unique=True)
-    address = Column(String(255), nullable=False)
+    phone_num = Column(String(10), nullable=True, unique=True)
+    address = Column(String(255), nullable=True)
     background_music = Column(String(255), nullable=True)
 
     user = db.relationship("User", back_populates="profile")

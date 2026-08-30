@@ -29,6 +29,7 @@ class PreOrder(BaseModel):
     order_items = db.relationship("OrderItem", back_populates="preorder")
     notifications = db.relationship("Notification", back_populates="preorder")
     product = db.relationship("Product", back_populates="preorders")
+    cart_items = db.relationship("CartItem", back_populates="preorder")
 
     def __str__(self):
         return f"PreOrder #{self.preorder_id}"

@@ -1,0 +1,240 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Sản phẩm - Verdia Merchandise{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<main class="products-page">
+
+    <div class="page-heading">
+
+        <p>VERDIA COLLECTION</p>
+
+        <h1>Sản phẩm</h1>
+
+    </div>
+
+    <section class="product-tools">
+
+        <div class="search-box">
+
+            <i class='bx bx-search'></i>
+
+            <input type="text" id="keyword" placeholder="Tìm kiếm sản phẩm...">
+
+            <button id="search-btn">
+                Tìm kiếm
+            </button>
+
+        </div>
+
+
+        <button class="filter-button" id="open-filter" type="button">
+            <i class='bx bx-filter-alt'></i>
+            Bộ lọc
+        </button>
+
+
+        <div class="sort-box">
+
+            <i class='bx bx-sort-alt-2'></i>
+
+            <select id="sort-select">
+
+                <option value="default">
+                    Sắp xếp
+                </option>
+
+                <option value="price-asc">
+                    Giá thấp đến cao
+                </option>
+
+                <option value="price-desc">
+                    Giá cao đến thấp
+                </option>
+
+                <option value="name-asc">
+                    Tên A → Z
+                </option>
+
+                <option value="name-desc">
+                    Tên Z → A
+                </option>
+
+            </select>
+
+        </div>
+
+    </section>
+
+    <div class="result-info" id="result-info" style="display: none;">
+        Có
+        <strong id="product-count">0</strong>
+        sản phẩm
+    </div>
+
+    <div id="loading-state" class="state-message">
+        Đang tải sản phẩm...
+    </div>
+
+
+    <div id="empty-state" class="state-message empty-state" style="display: none;">
+
+        <i class='bx bx-package'></i>
+
+        <h3>Không tìm thấy sản phẩm</h3>
+
+        <p>
+            Hãy thử thay đổi từ khóa hoặc bộ lọc.
+        </p>
+
+    </div>
+
+
+    <section id="product-grid" class="product-grid">
+    </section>
+
+</main>
+
+<div class="filter-overlay" id="filter-overlay">
+
+    <div class="filter-modal">
+
+        <div class="filter-modal-header">
+
+            <h2>Bộ lọc</h2>
+
+            <button id="close-filter" type="button">
+                <i class='bx bx-x'></i>
+            </button>
+
+        </div>
+
+        <div class="filter-group">
+
+            <h3>Trạng thái sản phẩm</h3>
+
+            <div class="filter-options">
+
+                <label class="filter-option">
+
+                    <input type="radio" name="status" value="" checked>
+
+                    <span>Tất cả</span>
+
+                </label>
+
+
+                <label class="filter-option">
+
+                    <input type="radio" name="status" value="IN_STOCK">
+
+                    <span>Có sẵn</span>
+
+                </label>
+
+
+                <label class="filter-option">
+
+                    <input type="radio" name="status" value="PREORDER">
+
+                    <span>Pre-order</span>
+
+                </label>
+
+            </div>
+
+        </div>
+
+        <div class="filter-group">
+
+            <h3>Khoảng giá</h3>
+
+            <div class="price-range">
+
+                <input type="number" id="min-price" min="0" placeholder="Giá từ">
+
+                <span>—</span>
+
+                <input type="number" id="max-price" min="0" placeholder="Giá đến">
+
+            </div>
+
+        </div>
+
+        <div class="filter-group">
+
+            <h3>Danh mục</h3>
+
+            <div class="category-select-group">
+
+                <select id="category-select">
+
+                    <option value="">
+                        Tất cả danh mục
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <div class="filter-group" id="sub-category-group" style="display: none;">
+
+            <h3>Danh mục phụ</h3>
+
+            <div class="category-select-group">
+
+                <select id="sub-category-select">
+
+                    <option value="">
+                        Tất cả
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <div class="filter-group" id="tag-group" style="display: none;">
+
+            <h3>Thẻ</h3>
+
+            <div id="tag-filter" class="tag-filter">
+
+                <p class="filter-loading">
+                    Hãy chọn danh mục phụ
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="filter-actions">
+
+            <button id="clear-filter" class="clear-filter" type="button">
+                Xóa bộ lọc
+            </button>
+
+            <button id="apply-filter" class="apply-filter" type="button">
+                Áp dụng
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/products.js') }}"></script>
+{% endblock %}

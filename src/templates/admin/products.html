@@ -1,0 +1,304 @@
+{% extends "layouts/admin_base.html" %}
+
+{% block title %}
+Quản lý sản phẩm - Verdia Admin
+{% endblock %}
+
+{% block breadcrumb %}
+<span>Sản phẩm</span>
+<i class='bx bx-chevron-right'></i>
+<strong id="product-breadcrumb-current">Danh sách</strong>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_products.css') }}">
+{% endblock %}
+
+{% block control_panel %}
+<section class="admin-control-panel" id="product-list-control-panel">
+    <div class="admin-control-left">
+        <button type="button" id="create-product-btn" class="admin-btn admin-btn-primary">
+            <i class='bx bx-plus'></i> Mới
+        </button>
+
+        <button type="button" id="reload-products-btn" class="admin-btn admin-btn-secondary">
+            <i class='bx bx-refresh'></i> Làm mới
+        </button>
+    </div>
+
+    <div class="admin-control-right">
+        <div class="admin-product-search">
+            <i class='bx bx-search'></i>
+            <input type="text" id="admin-product-keyword" placeholder="Tìm kiếm theo tên sản phẩm...">
+        </div>
+
+        <select id="admin-product-status" class="admin-select">
+            <option value="">Tất cả</option>
+            <option value="IN_STOCK">Có sẵn</option>
+            <option value="PREORDER">Pre-order</option>
+            <option value="INACTIVE">Ngừng kinh doanh</option>
+        </select>
+    </div>
+</section>
+
+<section class="admin-control-panel" id="product-form-control-panel" style="display: none;">
+    <div class="admin-control-left">
+        <button type="submit" form="admin-product-form" class="admin-btn admin-btn-primary">
+            <i class='bx bx-save'></i> Lưu
+        </button>
+
+        <button type="button" id="discard-product-btn" class="admin-btn admin-btn-secondary">
+            Hủy
+        </button>
+    </div>
+
+    <div class="admin-control-right">
+        <span class="product-form-mode" id="product-form-mode">
+            Sản phẩm mới
+        </span>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+
+<section id="product-list-view" class="product-view">
+    <section class="admin-panel product-list-panel">
+        <div id="admin-product-loading" class="admin-product-state">
+            <i class='bx bx-loader-alt bx-spin'></i>
+            <span>Đang tải sản phẩm...</span>
+        </div>
+
+        <div id="admin-product-empty" class="admin-product-state" style="display: none;">
+            <i class='bx bx-package'></i>
+            <strong>Không có sản phẩm</strong>
+            <span>Hãy tạo sản phẩm đầu tiên hoặc thay đổi bộ lọc.</span>
+        </div>
+
+        <div class="admin-product-table-wrapper">
+            <table id="admin-product-table" class="admin-product-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>
+                            Sản phẩm
+                            <span class="table-product-count" id="admin-table-product-count">(0)</span>
+                        </th>
+                        <th>Giá bán</th>
+                        <th>Loại</th>
+                        <th>Thẻ</th>
+                        <th>Trạng thái</th>
+                        <th class="product-actions-column">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-product-table-body">
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+
+
+<section id="product-form-view" class="product-view" style="display: none;">
+    <form id="admin-product-form">
+        <input type="hidden" id="edit-product-id">
+
+        <section class="product-form-sheet">
+            <div class="product-form-hero">
+                <div class="product-form-main">
+                    <span class="product-form-label">TÊN SẢN PHẨM</span>
+                    <input type="text" id="product-name" class="product-name-input"
+                        placeholder="Ví dụ: Natsume Acrylic Stand" required>
+
+                    <div class="product-main-fields">
+                        <div class="product-field-row">
+                            <label for="product-price">Giá bán</label>
+                            <div class="product-field-control price-control">
+                                <input type="number" id="product-price" min="1" placeholder="0" required>
+                                <span>VNĐ</span>
+                            </div>
+                        </div>
+
+                        <div class="product-field-row">
+                            <label for="product-status">Loại sản phẩm</label>
+                            <select id="product-status" required>
+                                <option value="IN_STOCK">Có sẵn</option>
+                                <option value="PREORDER">Pre-order</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-image-column">
+                    <input type="file" id="product-file-input" accept="image/*" style="display: none;">
+                    <div id="product-image-preview-box" class="product-image-uploader"
+                        title="Bấm để chọn ảnh từ máy tính">
+                        <i class='bx bx-cloud-upload'></i>
+                        <span>Bấm để tải ảnh lên</span>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <input type="url" id="product-image-url-input" placeholder="Hoặc dán link ảnh (https://...)"
+                            style="width: 100%; font-size: 11px; padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="product-form-tabs">
+                <button type="button" class="product-tab active" data-product-tab="general">
+                    Thông tin chung
+                </button>
+                <button type="button" class="product-tab" data-product-tab="category">
+                    Danh mục & Thẻ
+                </button>
+                <button type="button" class="product-tab" id="tab-btn-preorder-progress"
+                    data-product-tab="preorder-progress" style="display: none;">
+                    Tiến độ Pre-order
+                </button>
+                <button type="button" class="product-tab" id="tab-btn-preorder-customers"
+                    data-product-tab="preorder-customers" style="display: none;">
+                    Khách hàng Pre-order
+                </button>
+            </div>
+
+
+            <section class="product-tab-content active" data-product-content="general">
+                <div class="product-form-section">
+                    <h3>Thông tin sản phẩm</h3>
+                    <div class="product-field-block">
+                        <label for="product-description">Mô tả</label>
+                        <textarea id="product-description" rows="9" placeholder="Nhập mô tả chi tiết sản phẩm..."
+                            required></textarea>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="product-tab-content" data-product-content="category">
+                <div class="product-form-section">
+                    <h3>Phân loại sản phẩm</h3>
+                    <div class="product-category-grid">
+                        <div class="product-field-block">
+                            <label for="product-category">Danh mục</label>
+                            <select id="product-category">
+                                <option value="">Chọn danh mục</option>
+                            </select>
+                        </div>
+
+                        <div class="product-field-block">
+                            <label for="product-sub-category">Danh mục phụ</label>
+                            <select id="product-sub-category" disabled>
+                                <option value="">Chọn danh mục phụ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="product-field-block">
+                        <label>Thẻ sản phẩm (Gõ tên anime/series và nhấn Enter hoặc dấu +)</label>
+                        <div class="verdia-tag-container" id="product-tag-box">
+                            <div id="selected-tags-list" style="display: inline-flex; flex-wrap: wrap; gap: 6px;"></div>
+                            <input type="text" id="product-tag-input" class="verdia-tag-input"
+                                placeholder="Gõ tên thẻ và nhấn Enter...">
+                        </div>
+
+                        <div class="available-tags-wrapper">
+                            <span style="font-size: 7.5px; color: var(--admin-muted);">Gợi ý có sẵn:</span>
+                            <div id="available-tags-list" style="display: inline-flex; flex-wrap: wrap; gap: 5px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="product-tab-content" data-product-content="preorder-progress">
+                <div class="product-form-section">
+                    <h3>Cập nhật tiến độ sản xuất & Gửi thông báo đến người mua</h3>
+
+                    <div class="product-field-block">
+                        <label for="progress-status-select">Cập nhật bước tiến độ</label>
+                        <select id="progress-status-select">
+                            <option value="MỞ PREORDER">MỞ PREORDER</option>
+                            <option value="ĐÃ ĐẶT HÀNG">ĐÃ ĐẶT HÀNG</option>
+                            <option value="ĐANG SẢN XUẤT">ĐANG SẢN XUẤT</option>
+                            <option value="ĐÃ VỀ KHO TRUNG QUỐC">ĐÃ VỀ KHO TRUNG QUỐC</option>
+                            <option value="ĐÃ VỀ KHO VIỆT NAM">ĐÃ VỀ KHO VIỆT NAM</option>
+                            <option value="ĐANG GÓI HÀNG">ĐANG GÓI HÀNG</option>
+                            <option value="ĐÃ VẬN CHUYỂN">ĐÃ VẬN CHUYỂN</option>
+                            <option value="HOÀN THÀNH">HOÀN THÀNH</option>
+                        </select>
+                    </div>
+
+                    <div class="product-field-block">
+                        <label for="progress-title">Tiêu đề cập nhật</label>
+                        <input type="text" id="progress-title"
+                            placeholder="Ví dụ: Đã hoàn tất đúc mẫu - Bắt đầu sơn màu">
+                    </div>
+
+                    <div class="product-field-block">
+                        <label for="progress-content">Nội dung thông báo chi tiết</label>
+                        <textarea id="progress-content" rows="4"
+                            placeholder="Mô tả chi tiết tiến độ thực tế, thời gian dự kiến giao hàng..."></textarea>
+                    </div>
+
+                    <div class="product-field-block">
+                        <label>Hình ảnh tiến độ thực tế (Tối đa 10 ảnh)</label>
+                        <input type="file" id="progress-gallery-input" accept="image/*" multiple style="display: none;">
+                        <div class="preorder-progress-gallery" id="preorder-progress-gallery">
+                            <div class="gallery-upload-btn" id="gallery-add-btn">
+                                <i class='bx bx-plus-circle'></i>
+                                <span>Thêm ảnh</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 18px;">
+                        <button type="button" id="btn-submit-progress" class="admin-btn admin-btn-primary">
+                            <i class='bx bx-bell'></i> Cập nhật & Gửi thông báo
+                        </button>
+                    </div>
+
+
+                    <div class="progress-history-list">
+                        <h3 style="margin-bottom: 12px;"><i class='bx bx-history'></i> Tiến độ đã cập nhật gần đây</h3>
+                        <div id="progress-history-container">
+                            <span style="font-size: 7.5px; color: var(--admin-muted);">Chưa có tiến độ nào được ghi
+                                nhận.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="product-tab-content" data-product-content="preorder-customers">
+                <div class="product-form-section" style="padding-bottom: 20px;">
+                    <h3>Danh sách khách hàng đặt trước sản phẩm này</h3>
+                    <table class="admin-product-table" style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Tài khoản</th>
+                                <th>Số lượng</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái đơn</th>
+                                <th>Ngày đặt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preorder-customers-body">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--admin-muted); padding: 18px;">
+                                    Đang tải danh sách...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </form>
+</section>
+
+<div id="admin-product-toast" class="admin-product-toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin_products.js') }}"></script>
+{% endblock %}

@@ -37,14 +37,12 @@ def get_all_inventory():
             keyword=keyword, status=status, active=active
         )
 
-        return (
-            response_success(
+        return response_success(
                 {
                     "inventories": [
                         serialize_inventory(inventory) for inventory in inventories
                     ]
-                }
-            ),
+                },
             200,
         )
 
@@ -202,15 +200,13 @@ def get_inventory_transactions():
             product_id=product_id, transaction_type=transaction_type
         )
 
-        return (
-            response_success(
+        return response_success(
                 {
                     "transactions": [
                         serialize_inventory_transaction(transaction)
                         for transaction in transactions
                     ]
-                }
-            ),
+                },
             200,
         )
 

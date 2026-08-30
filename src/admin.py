@@ -9,12 +9,19 @@ from modules.inventories.models import Inventory
 from modules.wallets.models import Wallet
 from modules.notifications.models import Notification, UserNotification
 
-admin = Admin(app=app, name = "E-commerce Administration")
+admin = Admin(
+    app=app,
+    name="E-commerce Administration",
+    url="/system-admin",
+    endpoint="system_admin",
+)
+
 
 class ReadOnlyView(ModelView):
     can_create = False
     can_delete = False
     can_edit = False
+
 
 class EditOnlyView(ModelView):
     can_create = False
