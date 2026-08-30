@@ -6,7 +6,7 @@ document.addEventListener(
 
     }
 );
- 
+
 function getToken() {
 
     return localStorage.getItem(
@@ -14,7 +14,7 @@ function getToken() {
     );
 
 }
- 
+
 function getOrderId() {
 
     const parts =
@@ -28,7 +28,7 @@ function getOrderId() {
     ];
 
 }
- 
+
 async function loadOrderDetail() {
 
     const token =
@@ -177,7 +177,7 @@ async function loadOrderDetail() {
     }
 
 }
- 
+
 function renderOrderDetail(
     order,
     summary
@@ -243,33 +243,29 @@ function renderOrderDetail(
         summary
     );
 
+    renderOrderActions(
+        order,
+        summary
+    );
+
 }
- 
-function renderProducts(
-    items
-) {
+
+function renderProducts(items) {
 
     const container =
         document.getElementById(
             "detail-product-list"
         );
 
-
     container.innerHTML =
         items
             .map(item => {
 
                 const product =
-                    item.product
-                    ||
-                    {};
-
+                    item.product || {};
 
                 const image =
-                    product.image
-                    ||
-                    "";
-
+                    product.image || "";
 
                 const name =
                     product.product_name
@@ -278,12 +274,10 @@ function renderProducts(
                     ||
                     "Sản phẩm";
 
-
                 const isPreorder =
                     Boolean(
                         item.preorder_id
                     );
-
 
                 return `
 
@@ -291,22 +285,19 @@ function renderProducts(
 
                         <div class="detail-product-image">
 
-                            ${
-                                image
-                                    ? `
-                                        <img
-                                            src="${image}"
-                                            alt="${escapeHTML(name)}"
-                                        >
-                                    `
-                                    : `
-                                        <div class="detail-product-placeholder">
-
-                                            <i class='bx bx-image'></i>
-
-                                        </div>
-                                    `
-                            }
+                            ${image
+                        ? `
+                                    <img
+                                        src="${image}"
+                                        alt="${escapeHTML(name)}"
+                                    >
+                                `
+                        : `
+                                    <div class="detail-product-placeholder">
+                                        <i class='bx bx-image'></i>
+                                    </div>
+                                `
+                    }
 
                         </div>
 
@@ -317,24 +308,20 @@ function renderProducts(
                                 ${escapeHTML(name)}
                             </strong>
 
-
                             <span
                                 class="
                                     detail-product-type
-                                    ${
-                                        isPreorder
-                                            ? "preorder"
-                                            : "instock"
-                                    }
+                                    ${isPreorder
+                        ? "preorder"
+                        : "instock"
+                    }
                                 "
                             >
-                                ${
-                                    isPreorder
-                                        ? "PRE-ORDER"
-                                        : "CÓ SẴN"
-                                }
+                                ${isPreorder
+                        ? "PRE-ORDER"
+                        : "CÓ SẴN"
+                    }
                             </span>
-
 
                             <small>
                                 Số lượng:
@@ -352,11 +339,27 @@ function renderProducts(
 
                             <strong>
                                 ${formatPrice(
-                                    Number(item.price || 0)
-                                    *
-                                    Number(item.quantity || 1)
-                                )}
+                        Number(item.price || 0)
+                        *
+                        Number(item.quantity || 1)
+                    )}
                             </strong>
+
+                            ${item.item_status !== "ĐÃ HỦY"
+                        ? `
+                                        <button
+                                            type="button"
+                                            class="cancel-order-item-btn"
+                                            data-order-item-id="${item.order_item_id}">
+                                            Hủy sản phẩm
+                                        </button>
+                                    `
+                        : `
+                                        <span class="cancelled-item-label">
+                                            ĐÃ HỦY
+                                        </span>
+                                    `
+                    }
 
                         </div>
 
@@ -367,8 +370,94 @@ function renderProducts(
             })
             .join("");
 
+
+    container
+        .querySelectorAll(
+            ".cancel-order-item-btn"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                async () => {
+
+                    const orderItemId =
+                        button.dataset.orderItemId;
+
+                    const confirmed =
+                        confirm(
+                            "Bạn có chắc muốn hủy sản phẩm này?"
+                        );
+
+                    if (!confirmed) {
+                        return;
+                    }
+
+                    const token =
+                        getToken();
+
+                    try {
+
+                        button.disabled =
+                            true;
+
+                        button.textContent =
+                            "Đang hủy...";
+
+                        const response =
+                            await fetch(
+                                `/api/orders/items/${orderItemId}/cancel`,
+                                {
+                                    method: "PUT",
+                                    headers: {
+                                        Authorization:
+                                            `Bearer ${token}`
+                                    }
+                                }
+                            );
+
+                        const result =
+                            await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(
+                                result.message
+                                ||
+                                "Không thể hủy sản phẩm"
+                            );
+                        }
+
+                        alert(
+                            "Đã hủy sản phẩm."
+                        );
+
+                        window.location.reload();
+
+                    } catch (error) {
+
+                        console.error(
+                            "CANCEL ITEM ERROR:",
+                            error
+                        );
+
+                        alert(
+                            error.message
+                            ||
+                            "Không thể hủy sản phẩm"
+                        );
+
+                        button.disabled =
+                            false;
+
+                        button.textContent =
+                            "Hủy sản phẩm";
+                    }
+                }
+            );
+        });
+
 }
- 
+
 function renderPreorders(
     items
 ) {
@@ -491,12 +580,12 @@ function renderPreorders(
 
                                 <strong>
                                     ${escapeHTML(
-                                        product.product_name
-                                        ||
-                                        item.product_name
-                                        ||
-                                        "Sản phẩm Pre-order"
-                                    )}
+                    product.product_name
+                    ||
+                    item.product_name
+                    ||
+                    "Sản phẩm Pre-order"
+                )}
                                 </strong>
 
                                 <span>
@@ -515,29 +604,27 @@ function renderPreorders(
 
                         <div class="preorder-timeline">
 
-                            ${
-                                stages
-                                    .map(
-                                        (
-                                            stage,
-                                            index
-                                        ) => {
+                            ${stages
+                        .map(
+                            (
+                                stage,
+                                index
+                            ) => {
 
-                                            const active =
-                                                index
-                                                <= currentIndex;
+                                const active =
+                                    index
+                                    <= currentIndex;
 
 
-                                            return `
+                                return `
 
                                                 <div
                                                     class="
                                                         preorder-step
-                                                        ${
-                                                            active
-                                                                ? "active"
-                                                                : ""
-                                                        }
+                                                        ${active
+                                        ? "active"
+                                        : ""
+                                    }
                                                     "
                                                 >
 
@@ -545,11 +632,10 @@ function renderPreorders(
 
                                                         <i
                                                             class='bx
-                                                            ${
-                                                                active
-                                                                    ? "bx-check"
-                                                                    : "bx-circle"
-                                                            }'
+                                                            ${active
+                                        ? "bx-check"
+                                        : "bx-circle"
+                                    }'
                                                         ></i>
 
                                                     </div>
@@ -562,27 +648,26 @@ function renderPreorders(
 
                                             `;
 
-                                        }
-                                    )
-                                    .join("")
                             }
+                        )
+                        .join("")
+                    }
 
                         </div>
 
 
-                        ${
-                            preorder.progress_note
-                                ? `
+                        ${preorder.progress_note
+                        ? `
                                     <p class="preorder-note">
 
                                         ${escapeHTML(
-                                            preorder.progress_note
-                                        )}
+                            preorder.progress_note
+                        )}
 
                                     </p>
                                 `
-                                : ""
-                        }
+                        : ""
+                    }
 
                     </div>
 
@@ -592,7 +677,7 @@ function renderPreorders(
             .join("");
 
 }
- 
+
 function getPreorderStage(
     progress
 ) {
@@ -644,7 +729,7 @@ function getPreorderStage(
     return "PREORDER";
 
 }
- 
+
 function renderShipping(
     order,
     items
@@ -742,7 +827,7 @@ function renderShipping(
             .join("");
 
 }
- 
+
 function renderShippingTimeline(
     order,
     items
@@ -835,11 +920,10 @@ function renderShippingTimeline(
                         <div
                             class="
                                 shipping-step
-                                ${
-                                    active
-                                        ? "active"
-                                        : ""
-                                }
+                                ${active
+                            ? "active"
+                            : ""
+                        }
                             "
                         >
 
@@ -865,7 +949,7 @@ function renderShippingTimeline(
             .join("");
 
 }
- 
+
 function getShippingStatus(
     order,
     items
@@ -929,7 +1013,7 @@ function getShippingStatus(
     return "PROCESSING";
 
 }
- 
+
 function renderPaymentSummary(
     order,
     summary
@@ -1005,7 +1089,7 @@ function renderPaymentSummary(
         );
 
 }
- 
+
 function renderPayments(
     payments
 ) {
@@ -1070,7 +1154,7 @@ function renderPayments(
             .join("");
 
 }
- 
+
 function formatPrice(
     value
 ) {
@@ -1143,4 +1227,61 @@ function escapeHTML(
             "&#039;"
         );
 
+}
+
+const orderActions =
+    document.getElementById(
+        "order-actions"
+    );
+
+const payOrderBtn =
+    document.getElementById(
+        "pay-order-btn"
+    );
+
+const cancelOrderBtn =
+    document.getElementById(
+        "cancel-order-btn"
+    );
+
+
+function renderOrderActions(
+    order,
+    summary
+) {
+
+    if (!orderActions) {
+        return;
+    }
+
+    const status =
+        String(
+            order.order_status || ""
+        )
+            .trim()
+            .toUpperCase();
+
+    const remainingAmount =
+        Number(
+            summary?.remaining_amount
+            ?? 0
+        );
+
+    const canPay =
+        status === "CHỜ XÁC NHẬN"
+        &&
+        remainingAmount > 0;
+
+    if (!canPay) {
+        orderActions.style.display =
+            "none";
+
+        return;
+    }
+
+    orderActions.style.display =
+        "flex";
+
+    payOrderBtn.href =
+        `/payment/${order.order_id}`;
 }

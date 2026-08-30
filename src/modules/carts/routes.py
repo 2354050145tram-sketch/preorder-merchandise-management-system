@@ -26,9 +26,7 @@ def get_cart():
             400,
         )
 
-    except Exception as error:
-        print("GET CART ERROR:", error)
-
+    except Exception:
         return response_error(
             "Có lỗi xảy ra khi lấy giỏ hàng",
             500,
@@ -64,9 +62,7 @@ def add_cart_item():
             400,
         )
 
-    except Exception as error:
-        print("ADD CART ERROR:", error)
-
+    except Exception:
         return response_error(
             "Có lỗi xảy ra khi thêm vào giỏ hàng",
             500,
@@ -102,9 +98,7 @@ def update_cart_item(cart_item_id):
             400,
         )
 
-    except Exception as error:
-        print("UPDATE CART ERROR:", error)
-
+    except Exception:
         return response_error(
             "Có lỗi xảy ra khi cập nhật giỏ hàng",
             500,
@@ -137,9 +131,7 @@ def remove_cart_item(cart_item_id):
             400,
         )
 
-    except Exception as error:
-        print("DELETE CART ITEM ERROR:", error)
-
+    except Exception:
         return response_error(
             "Có lỗi xảy ra khi xóa sản phẩm",
             500,
@@ -169,9 +161,7 @@ def clear_cart():
             400,
         )
 
-    except Exception as error:
-        print("CLEAR CART ERROR:", error)
-
+    except Exception:
         return response_error(
             "Có lỗi xảy ra khi xóa giỏ hàng",
             500,

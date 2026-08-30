@@ -4,14 +4,21 @@ from utils.email import send_email
 from modules.notifications.models import Notification, UserNotification
 from modules.users.models import User
 from modules.preorders.models import PreOrder
-from modules.orders.models import Order, OrderItem, Payment
+from modules.orders.models import Order, OrderItem
 
 
 class NotificationService:
 
     @staticmethod
-    def send_preorder_notification(preorder_id, title, message):
-        preorder = db.session.get(PreOrder, preorder_id)
+    def send_preorder_notification(
+        preorder_id,
+        title,
+        message,
+    ):
+        preorder = db.session.get(
+            PreOrder,
+            preorder_id,
+        )
 
         if not preorder:
             raise ValueError("Đợt preorder không tồn tại")
@@ -24,14 +31,18 @@ class NotificationService:
 
         stmt = (
             select(User)
-            .join(Order, User.user_id == Order.user_id)
-            .join(OrderItem, Order.order_id == OrderItem.order_id)
-            .join(Payment, Order.order_id == Payment.order_id)
+            .join(
+                Order,
+                User.user_id == Order.user_id,
+            )
+            .join(
+                OrderItem,
+                Order.order_id == OrderItem.order_id,
+            )
             .where(
-                OrderItem.preorder_id == preorder_id,
+                OrderItem.product_id == preorder.product_id,
                 OrderItem.item_status != "ĐÃ HỦY",
                 User.active.is_(True),
-                Payment.payment_status == "ĐÃ THANH TOÁN",
             )
             .distinct()
         )
@@ -42,7 +53,9 @@ class NotificationService:
             return None
 
         notification = Notification(
-            preorder_id=preorder_id, title=title, message=message
+            preorder_id=preorder_id,
+            title=title,
+            message=message,
         )
 
         try:
@@ -51,7 +64,8 @@ class NotificationService:
 
             for user in users:
                 user_notification = UserNotification(
-                    user_id=user.user_id, notification_id=(notification.notification_id)
+                    user_id=user.user_id,
+                    notification_id=(notification.notification_id),
                 )
 
                 db.session.add(user_notification)
@@ -62,12 +76,37 @@ class NotificationService:
             db.session.rollback()
             raise
 
+        sent_count = 0
+        failed_emails = []
+
         for user in users:
+            if not user.email:
+                failed_emails.append(
+                    {
+                        "user_id": user.user_id,
+                        "email": None,
+                        "error": "Khách hàng không có email",
+                    }
+                )
+                continue
+
             try:
-                send_email(recipient=user.email, subject=title, body=message)
+                send_email(
+                    recipient=user.email,
+                    subject=title,
+                    body=message,
+                )
+
+                sent_count += 1
 
             except Exception as error:
-                print(f"Không thể gửi email cho " f"{user.email}: {error}")
+                failed_emails.append(
+                    {
+                        "user_id": user.user_id,
+                        "email": user.email,
+                        "error": str(error),
+                    }
+                )
 
         return notification
 

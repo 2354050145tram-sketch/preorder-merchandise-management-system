@@ -242,7 +242,6 @@ def delete_product(product_id):
         )
 
 
-
 @product_bp.route(
     "/categories",
     methods=["GET"],
@@ -265,14 +264,11 @@ def get_categories():
             200,
         )
 
-    except Exception as error:
-        print("LỖI GET CATEGORIES:", error)
-
+    except Exception:
         return response_error(
-            str(error),
+            "Có lỗi xảy ra khi đăng nhập Google",
             500,
         )
-
 
 
 @product_bp.route(
@@ -309,7 +305,6 @@ def get_sub_categories(category_id):
             "Có lỗi xảy ra khi lấy danh mục phụ",
             500,
         )
-
 
 
 @product_bp.route(

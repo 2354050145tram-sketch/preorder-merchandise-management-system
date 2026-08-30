@@ -66,6 +66,5 @@ class Profile(db.Model):
     avatar = Column(String(255), nullable=True)
     phone_num = Column(String(10), nullable=True, unique=True)
     address = Column(String(255), nullable=True)
-    background_music = Column(String(255), nullable=True)
 
     user = db.relationship("User", back_populates="profile")

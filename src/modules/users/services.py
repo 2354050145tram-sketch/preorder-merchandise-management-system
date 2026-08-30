@@ -326,12 +326,6 @@ class UserService:
         if "avatar" in data:
             profile.avatar = data["avatar"].strip() if data["avatar"] else None
 
-        # Cập nhật nhạc nền
-        if "background_music" in data:
-            profile.background_music = (
-                data["background_music"].strip() if data["background_music"] else None
-            )
-
         try:
             db.session.commit()
             return profile
@@ -369,7 +363,7 @@ class UserService:
         except Exception:
             db.session.rollback()
             raise
-        
+
     @staticmethod
     def get_all_users_admin():
         stmt = (

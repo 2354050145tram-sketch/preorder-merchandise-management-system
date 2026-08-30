@@ -107,30 +107,84 @@ function togglePreorderTabsByStatus() {
 
 async function fetchPreorderInfo(productId) {
     const token = getAdminToken();
-    try {
-        const res = await fetch(`/api/preorders/admin`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const result = await res.json();
-        const preorders = result.data?.preorders || result.preorders || [];
 
-        const found = preorders.find(p => Number(p.product_id) === Number(productId));
-        if (found) {
-            currentPreorderId = found.preorder_id;
-            currentPreorderObject = found;
-            if (document.getElementById("progress-status-select") && found.progress_status) {
-                document.getElementById("progress-status-select").value = found.progress_status;
+    try {
+        const res = await fetch(
+            "/api/preorders/admin",
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             }
-            renderProgressHistory(found);
-        } else {
+        );
+
+        const result = await res.json();
+
+        if (!res.ok) {
+            throw new Error(
+                result.message ||
+                "Không thể tải thông tin preorder"
+            );
+        }
+
+        const preorders =
+            result.data?.preorders ||
+            result.preorders ||
+            [];
+
+        const productPreorders = preorders
+            .filter(
+                preorder =>
+                    Number(preorder.product_id) ===
+                    Number(productId)
+            )
+            .sort(
+                (a, b) =>
+                    Number(b.preorder_id) -
+                    Number(a.preorder_id)
+            );
+
+        const found =
+            productPreorders.find(
+                preorder =>
+                    Number(preorder.preorder_id) ===
+                    Number(currentPreorderId)
+            ) ||
+            productPreorders.find(
+                preorder =>
+                    preorder.active === true
+            ) ||
+            productPreorders[0];
+
+        if (!found) {
             currentPreorderId = null;
             currentPreorderObject = null;
-            renderProgressHistory(null);
+            return;
         }
-    } catch (e) {
-        console.error("Fetch preorder error:", e);
-        currentPreorderId = null;
-        renderProgressHistory(null);
+
+        currentPreorderId = found.preorder_id;
+        currentPreorderObject = found;
+
+        const statusSelect =
+            document.getElementById(
+                "progress-status-select"
+            );
+
+        if (statusSelect && found.progress_status) {
+            statusSelect.value =
+                found.progress_status;
+        }
+
+    } catch (error) {
+        console.error(
+            "FETCH PREORDER ERROR:",
+            error
+        );
+
+        showProductToast(
+            error.message ||
+            "Không thể tải thông tin preorder"
+        );
     }
 }
 
@@ -228,46 +282,94 @@ function removeProgressImage(idx) {
 }
 
 async function submitPreorderProgressAndNotify() {
-    const productId = document.getElementById("edit-product-id").value;
-    const progressStatus = document.getElementById("progress-status-select").value;
-    const title = document.getElementById("progress-title").value.trim();
-    const content = document.getElementById("progress-content").value.trim();
+    const productId = Number(
+        document.getElementById("edit-product-id").value
+    );
+
+    const progressStatus = document
+        .getElementById("progress-status-select")
+        .value;
+
+    const title = document
+        .getElementById("progress-title")
+        .value
+        .trim();
+
+    const content = document
+        .getElementById("progress-content")
+        .value
+        .trim();
+
     const token = getAdminToken();
 
     if (!productId) {
-        showProductToast("Vui lòng lưu sản phẩm trước khi cập nhật tiến độ");
+        showProductToast(
+            "Vui lòng lưu sản phẩm trước khi cập nhật tiến độ"
+        );
         return;
     }
 
     if (!title || !content) {
-        showProductToast("Vui lòng nhập đầy đủ tiêu đề và nội dung tiến độ");
+        showProductToast(
+            "Vui lòng nhập đầy đủ tiêu đề và nội dung tiến độ"
+        );
         return;
     }
 
     try {
         if (!currentPreorderId) {
-            const today = new Date().toISOString().split("T")[0];
-            const nextYear = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0];
+            const today = new Date()
+                .toISOString()
+                .split("T")[0];
 
-            const createRes = await fetch(`/api/preorders/admin`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    product_id: Number(productId),
-                    start_date: today,
-                    end_date: nextYear,
-                    progress_note: `${title}: ${content}`
-                })
-            });
-            const createData = await createRes.json();
-            if (createRes.ok && createData.data?.preorder) {
-                currentPreorderId = createData.data.preorder.preorder_id;
+            const nextDate = new Date();
+            nextDate.setFullYear(
+                nextDate.getFullYear() + 1
+            );
+
+            const nextYear = nextDate
+                .toISOString()
+                .split("T")[0];
+
+            const createRes = await fetch(
+                "/api/preorders/admin",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        start_date: today,
+                        end_date: nextYear,
+                        progress_note: `${title}: ${content}`
+                    })
+                }
+            );
+
+            const createResult = await createRes.json();
+
+            if (!createRes.ok) {
+                throw new Error(
+                    createResult.message ||
+                    "Không thể tạo đợt preorder"
+                );
             }
-        } else {
-            await fetch(`/api/preorders/admin/${currentPreorderId}/progress`, {
+
+            currentPreorderId =
+                createResult.data?.preorder?.preorder_id;
+
+            if (!currentPreorderId) {
+                throw new Error(
+                    "API không trả về mã đợt preorder"
+                );
+            }
+        }
+
+        const progressRes = await fetch(
+            `/api/preorders/admin/${currentPreorderId}/progress`,
+            {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -277,32 +379,87 @@ async function submitPreorderProgressAndNotify() {
                     progress_status: progressStatus,
                     progress_note: `${title}: ${content}`
                 })
-            });
+            }
+        );
+
+        const progressResult =
+            await progressRes.json();
+
+        if (!progressRes.ok) {
+            throw new Error(
+                progressResult.message ||
+                "Không thể cập nhật trạng thái preorder"
+            );
         }
 
-        if (currentPreorderId) {
-            await fetch(`/api/notifications/admin/preorders/${currentPreorderId}`, {
+        const updatedPreorder =
+            progressResult.data?.preorder;
+
+        if (updatedPreorder) {
+            currentPreorderId =
+                updatedPreorder.preorder_id;
+
+            currentPreorderObject =
+                updatedPreorder;
+
+            document.getElementById(
+                "progress-status-select"
+            ).value = updatedPreorder.progress_status;
+        }
+
+        const notificationRes = await fetch(
+            `/api/notifications/admin/preorders/${currentPreorderId}`,
+            {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    title: title,
+                    title,
                     message: content
                 })
-            });
+            }
+        );
+
+        const notificationResult =
+            await notificationRes.json();
+
+        if (!notificationRes.ok) {
+            throw new Error(
+                notificationResult.message ||
+                "Đã đổi trạng thái nhưng không thể gửi thông báo"
+            );
         }
 
-        showProductToast("Đã cập nhật tiến độ và gửi thông báo thành công!");
-        document.getElementById("progress-title").value = "";
-        document.getElementById("progress-content").value = "";
+        showProductToast(
+            notificationResult.message ||
+            "Đã cập nhật trạng thái và gửi thông báo"
+        );
+
+        document.getElementById(
+            "progress-title"
+        ).value = "";
+
+        document.getElementById(
+            "progress-content"
+        ).value = "";
+
         progressGalleryImages = [];
         renderProgressGallery();
 
         await fetchPreorderInfo(productId);
-    } catch (e) {
-        showProductToast(e.message || "Lỗi cập nhật tiến độ");
+
+    } catch (error) {
+        console.error(
+            "UPDATE PREORDER ERROR:",
+            error
+        );
+
+        showProductToast(
+            error.message ||
+            "Không thể cập nhật tiến độ preorder"
+        );
     }
 }
 
@@ -341,11 +498,6 @@ async function loadPreorderCustomers(productId) {
 async function openEditProduct(productId) {
     const product = adminProducts.find(item => Number(item.product_id) === Number(productId));
     if (!product) return;
-
-    const urlInput = document.getElementById("product-image-url-input");
-    if (urlInput) {
-        urlInput.value = (product.image && product.image.startsWith("http")) ? product.image : "";
-    }
 
     editingProduct = product;
     document.getElementById("edit-product-id").value = product.product_id;
@@ -406,21 +558,24 @@ async function fillProductCategorySafe(product) {
 }
 
 function bindImageUploadEvents() {
-    imagePreviewBox.addEventListener("click", () => fileInput.click());
+    imagePreviewBox.addEventListener("click", () => {
+        fileInput.click();
+    });
 
     fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
+
         if (!file) return;
 
-        const urlInput = document.getElementById("product-image-url-input");
-        if (urlInput) urlInput.value = "";
-
         const reader = new FileReader();
+
         reader.onload = (event) => {
             const img = new Image();
+
             img.onload = () => {
                 const canvas = document.createElement("canvas");
                 const maxDim = 800;
+
                 let width = img.width;
                 let height = img.height;
 
@@ -434,23 +589,31 @@ function bindImageUploadEvents() {
 
                 canvas.width = width;
                 canvas.height = height;
+
                 const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0, width, height);
 
-                currentProductImageBase64 = canvas.toDataURL("image/jpeg", 0.85);
-                renderImagePreview(currentProductImageBase64);
+                ctx.drawImage(
+                    img,
+                    0,
+                    0,
+                    width,
+                    height
+                );
 
-                const urlInput = document.getElementById("product-image-url-input");
-                urlInput?.addEventListener("input", (e) => {
-                    const url = e.target.value.trim();
-                    if (url) {
-                        currentProductImageBase64 = url; // Gán thẳng link URL vào biến lưu
-                        renderImagePreview(url);
-                    }
-                });
+                currentProductImageBase64 =
+                    canvas.toDataURL(
+                        "image/jpeg",
+                        0.85
+                    );
+
+                renderImagePreview(
+                    currentProductImageBase64
+                );
             };
+
             img.src = event.target.result;
         };
+
         reader.readAsDataURL(file);
     });
 }
@@ -695,6 +858,7 @@ function createProductRow(product) {
     return `
         <tr class="${isActive ? '' : 'product-inactive'}" 
             onclick="openEditProduct(${product.product_id})">
+            <td class="admin-product-id">#${product.product_id}</td>
             <td>
                 <div class="admin-product-cell">
                     <div class="admin-product-thumb">
@@ -706,7 +870,6 @@ function createProductRow(product) {
                     </div>
                     <div class="admin-product-name">
                         <strong>${escapeAdminHTML(product.product_name)}</strong>
-                        <span>ID #${product.product_id}</span>
                     </div>
                 </div>
             </td>
@@ -751,9 +914,6 @@ function openCreateProduct() {
     currentProductImageBase64 = "";
     renderImagePreview("");
     fileInput.value = "";
-
-    const urlInput = document.getElementById("product-image-url-input");
-    if (urlInput) urlInput.value = "";
 
     currentSelectedTags = [];
     renderProductTags();

@@ -13,11 +13,9 @@ class InventoryService:
             Product, Inventory.product_id == Product.product_id
         )
 
-        # Lọc active
         if active is not None:
             stmt = stmt.where(Inventory.active == active)
 
-        # Tìm theo tên sản phẩm
         if keyword and keyword.strip():
             keyword = keyword.strip()
 
@@ -25,7 +23,6 @@ class InventoryService:
 
         inventories = db.session.scalars(stmt).all()
 
-        # Lọc theo trạng thái tồn kho
         if status:
             valid_statuses = ["CÒN HÀNG", "SẮP HẾT HÀNG", "HẾT HÀNG"]
 
@@ -58,7 +55,6 @@ class InventoryService:
         if not product or not product.active:
             raise ValueError("Sản phẩm không tồn tại")
 
-        # Kiểm tra sản phẩm đã có tồn kho chưa
         stmt = select(Inventory).where(Inventory.product_id == product_id)
 
         existing_inventory = db.session.scalar(stmt)
@@ -66,7 +62,6 @@ class InventoryService:
         if existing_inventory:
             raise ValueError("Sản phẩm đã có tồn kho")
 
-        # Kiểm tra số lượng
         try:
             quantity = int(quantity)
         except (TypeError, ValueError):
@@ -75,7 +70,6 @@ class InventoryService:
         if quantity < 0:
             raise ValueError("Số lượng không được nhỏ hơn 0")
 
-        # Kiểm tra giá nhập
         try:
             price = Decimal(str(price))
         except (InvalidOperation, TypeError, ValueError):
@@ -112,7 +106,6 @@ class InventoryService:
     def import_stock(product_id, quantity, price):
         inventory = InventoryService.get_inventory_by_product(product_id)
 
-        # Kiểm tra số lượng nhập
         try:
             quantity = int(quantity)
         except (TypeError, ValueError):
@@ -121,7 +114,6 @@ class InventoryService:
         if quantity <= 0:
             raise ValueError("Số lượng nhập phải lớn hơn 0")
 
-        # Kiểm tra giá nhập
         try:
             price = Decimal(str(price))
         except (InvalidOperation, TypeError, ValueError):
@@ -205,17 +197,13 @@ class InventoryService:
         if quantity < 0:
             raise ValueError("Số lượng không được nhỏ hơn 0")
 
-        # Lưu số lượng cũ để tính chênh lệch
         old_quantity = inventory.quantity
 
-        # Cập nhật số lượng mới
         inventory.quantity = quantity
 
-        # Tính số lượng điều chỉnh
         difference = quantity - old_quantity
 
         try:
-            # Chỉ ghi lịch sử nếu số lượng thật sự thay đổi
             if difference != 0:
                 transaction = InventoryTransaction(
                     inventory_id=inventory.inventory_id,

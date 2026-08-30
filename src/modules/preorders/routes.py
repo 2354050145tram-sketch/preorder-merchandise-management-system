@@ -46,7 +46,11 @@ def get_preorder_by_id(preorder_id):
     try:
         preorder = PreOrderService.get_preorder_by_id(preorder_id, active=True)
 
-        return response_success({"preorder": serialize_preorder(preorder)}), 200
+        return response_success(
+            {"preorder": serialize_preorder(preorder)},
+            "Lấy preorder thành công",
+            200,
+        )
 
     except ValueError as error:
         return response_error(str(error), 404)
@@ -91,10 +95,9 @@ def get_all_preorders_admin():
             active=active,
         )
 
-        return (
-            response_success(
-                {"preorders": [serialize_preorder(preorder) for preorder in preorders]}
-            ),
+        return response_success(
+            {"preorders": [serialize_preorder(preorder) for preorder in preorders]},
+            "Lấy danh sách preorder thành công",
             200,
         )
 

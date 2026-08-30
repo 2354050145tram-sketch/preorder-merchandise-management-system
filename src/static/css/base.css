@@ -40,7 +40,7 @@ select,
 textarea {
     font-family: "Poppins", sans-serif;
 }
- 
+
 .header.shared-header {
     width: 100%;
     height: 92px;
@@ -67,7 +67,7 @@ textarea {
 }
 
 
- 
+
 .shared-header .logo {
     height: 78px;
 
@@ -88,7 +88,7 @@ textarea {
 }
 
 
- 
+
 .shared-header .navbar {
     display: flex;
 
@@ -144,7 +144,7 @@ textarea {
 }
 
 
- 
+
 
 .shared-header .header-actions {
     display: flex;
@@ -164,7 +164,7 @@ textarea {
 }
 
 
- 
+
 .shared-header .header-icon {
     width: 42px;
 
@@ -202,7 +202,7 @@ textarea {
 }
 
 
- 
+
 .header .login-btn-nav {
     height: 42px;
 
@@ -260,63 +260,7 @@ textarea {
     box-shadow:
         0 6px 16px rgba(184, 138, 69, 0.22);
 }
- 
-footer {
-    padding:
-        45px 6%;
 
-    background:
-        #f3ede3;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-}
-
-
-.footer-logo img {
-    width: 130px;
-
-    height: 80px;
-
-    object-fit: contain;
-}
-
-
-.footer-links {
-    display: flex;
-
-    gap: 25px;
-}
-
-
-.footer-links a {
-    color:
-        var(--navy);
-
-    font-size: 13px;
-
-    text-decoration: none;
-}
-
-
-.footer-links a:hover {
-    color:
-        var(--gold);
-}
-
-
-footer>p {
-    color:
-        var(--muted);
-
-    font-size: 12px;
-}
-
-
- 
 @media screen and (max-width: 800px) {
 
     .header.shared-header {
@@ -401,25 +345,15 @@ footer>p {
     }
 
 
-    footer {
-        flex-direction:
-            column;
-
-        gap:
-            25px;
-    }
-
-
-
 }
 
- 
+
 .notification-wrapper {
     position: relative;
 }
 
 
- 
+
 .notification-btn {
     position: relative;
 
@@ -470,7 +404,7 @@ footer>p {
 }
 
 
- 
+
 .notification-dropdown {
     width: 365px;
 
@@ -520,7 +454,7 @@ footer>p {
 }
 
 
- 
+
 .notification-dropdown-header {
     min-height: 65px;
 
@@ -563,7 +497,7 @@ footer>p {
 }
 
 
- 
+
 .notification-list {
     max-height: 335px;
 
@@ -584,7 +518,7 @@ footer>p {
 }
 
 
- 
+
 .notification-item {
     width: 100%;
 
@@ -621,7 +555,7 @@ footer>p {
 }
 
 
- 
+
 .notification-item-icon {
     width: 40px;
 
@@ -648,7 +582,7 @@ footer>p {
 }
 
 
- 
+
 .notification-item-content {
     min-width: 0;
 }
@@ -702,7 +636,7 @@ footer>p {
 }
 
 
- 
+
 .notification-empty {
     min-height: 160px;
 
@@ -736,7 +670,7 @@ footer>p {
 }
 
 
- 
+
 .notification-view-all {
     height: 48px;
 
@@ -771,7 +705,7 @@ footer>p {
 }
 
 
- 
+
 @media screen and (max-width: 650px) {
 
     .notification-dropdown {

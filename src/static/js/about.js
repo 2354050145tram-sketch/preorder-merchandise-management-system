@@ -50,9 +50,6 @@ async function loadAboutProducts() {
             [];
 
 
-        // =========================================
-        // CHỈ LẤY SẢN PHẨM ĐANG CÓ THỂ MUA
-        // =========================================
 
         const availableProducts =
             products.filter(
@@ -89,9 +86,6 @@ async function loadAboutProducts() {
             );
 
 
-        // =========================================
-        // LẤY TỐI ĐA 4 SẢN PHẨM
-        // =========================================
 
         const displayProducts =
             availableProducts.slice(
@@ -147,7 +141,7 @@ async function loadAboutProducts() {
 }
 
 
- 
+
 function createAboutProductCard(
     product
 ) {
@@ -189,14 +183,13 @@ function createAboutProductCard(
 
             <div class="about-product-image">
 
-                ${
-                    image
-                        ? `
+                ${image
+            ? `
                             <img
                                 src="${image}"
                                 alt="${escapeHtml(
-                                    product.product_name
-                                )}"
+                product.product_name
+            )}"
                                 loading="lazy"
 
                                 onerror="
@@ -212,14 +205,14 @@ function createAboutProductCard(
                                 <i class='bx bx-image'></i>
                             </div>
                         `
-                        : `
+            : `
                             <div
                                 class="about-product-placeholder"
                             >
                                 <i class='bx bx-image'></i>
                             </div>
                         `
-                }
+        }
 
 
                 <span
@@ -238,8 +231,8 @@ function createAboutProductCard(
 
                 <h3>
                     ${escapeHtml(
-                        product.product_name
-                    )}
+            product.product_name
+        )}
                 </h3>
 
 
@@ -255,7 +248,7 @@ function createAboutProductCard(
 }
 
 
- 
+
 function escapeHtml(value) {
 
     return String(
