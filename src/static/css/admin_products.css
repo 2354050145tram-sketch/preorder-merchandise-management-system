@@ -74,7 +74,6 @@
     width: 100%;
 }
 
-/* KHÓA CỨNG KÍCH THƯỚC BẢNG ĐỂ KHÔNG BAO GIỜ BỊ TRÔI LỀ */
 .admin-product-table {
     width: 100% !important;
     border-collapse: collapse !important;
@@ -109,12 +108,12 @@
 
 .admin-product-table th:nth-child(1),
 .admin-product-table td:nth-child(1) {
-    width: 32%;
+    width: 9%;
 }
 
 .admin-product-table th:nth-child(2),
 .admin-product-table td:nth-child(2) {
-    width: 14%;
+    width: 27%;
 }
 
 .admin-product-table th:nth-child(3),
@@ -124,18 +123,29 @@
 
 .admin-product-table th:nth-child(4),
 .admin-product-table td:nth-child(4) {
-    width: 18%;
+    width: 14%;
 }
 
 .admin-product-table th:nth-child(5),
 .admin-product-table td:nth-child(5) {
-    width: 14%;
+    width: 17%;
 }
 
 .admin-product-table th:nth-child(6),
 .admin-product-table td:nth-child(6) {
+    width: 13%;
+}
+
+.admin-product-table th:nth-child(7),
+.admin-product-table td:nth-child(7) {
     width: 8%;
     text-align: center;
+}
+
+.admin-product-id {
+    color: var(--admin-gold-dark);
+    font-size: 12px !important;
+    font-weight: 600;
 }
 
 .admin-product-table tbody tr {

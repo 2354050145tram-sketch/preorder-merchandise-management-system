@@ -161,7 +161,6 @@ class ProductService:
         if max_price is not None:
             stmt = stmt.where(Product.price <= max_price)
 
-
         need_tag_join = (
             category_id is not None or sub_category_id is not None or bool(tag_ids)
         )

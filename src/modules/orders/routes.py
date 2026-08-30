@@ -84,13 +84,7 @@ def get_order_by_id(order_id):
             404,
         )
 
-    except Exception as error:
-
-        print(
-            "GET ORDER DETAIL ERROR:",
-            error,
-        )
-
+    except Exception:
         return response_error(
             "Có lỗi xảy ra khi lấy đơn hàng",
             500,
@@ -137,7 +131,6 @@ def get_order_admin(order_id):
         if not order:
             return response_error("Đơn hàng không tồn tại", 404)
 
-        # Trả về dữ liệu chi tiết an toàn
         return response_success(
             {"order": serialize_order(order)}, "Lấy chi tiết đơn hàng thành công", 200
         )
@@ -147,7 +140,6 @@ def get_order_admin(order_id):
     except ValueError as error:
         return response_error(str(error), 404)
     except Exception as error:
-        print(">>> LỖI GET ORDER ADMIN DETAIL:", str(error))
         return response_error(f"Lỗi: {str(error)}", 500)
 
 
@@ -449,10 +441,7 @@ def get_deposit_eligibility():
             200,
         )
 
-    except Exception as error:
-
-        print("DEPOSIT ELIGIBILITY ERROR:", error)
-
+    except Exception:
         return response_error(
             "Có lỗi xảy ra khi kiểm tra quyền đặt cọc",
             500,
@@ -531,7 +520,7 @@ def get_preorder_customers_by_product(product_id):
             item_quantity = r.quantity
             item_subtotal = (
                 item_price * item_quantity
-            )  # Tính riêng tiền của sản phẩm này
+            ) 
 
             customers.append(
                 {

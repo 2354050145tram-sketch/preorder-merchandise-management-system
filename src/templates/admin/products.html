@@ -79,6 +79,7 @@ Quản lý sản phẩm - Verdia Admin
             <table id="admin-product-table" class="admin-product-table" style="display: none;">
                 <thead>
                     <tr>
+                        <th style="width: 9%;">Mã SP</th>
                         <th>
                             Sản phẩm
                             <span class="table-product-count" id="admin-table-product-count">(0)</span>
@@ -130,14 +131,11 @@ Quản lý sản phẩm - Verdia Admin
 
                 <div class="product-image-column">
                     <input type="file" id="product-file-input" accept="image/*" style="display: none;">
+
                     <div id="product-image-preview-box" class="product-image-uploader"
                         title="Bấm để chọn ảnh từ máy tính">
                         <i class='bx bx-cloud-upload'></i>
                         <span>Bấm để tải ảnh lên</span>
-                    </div>
-                    <div style="margin-top: 8px;">
-                        <input type="url" id="product-image-url-input" placeholder="Hoặc dán link ảnh (https://...)"
-                            style="width: 100%; font-size: 11px; padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px;">
                     </div>
                 </div>
             </div>
@@ -255,15 +253,6 @@ Quản lý sản phẩm - Verdia Admin
                         <button type="button" id="btn-submit-progress" class="admin-btn admin-btn-primary">
                             <i class='bx bx-bell'></i> Cập nhật & Gửi thông báo
                         </button>
-                    </div>
-
-
-                    <div class="progress-history-list">
-                        <h3 style="margin-bottom: 12px;"><i class='bx bx-history'></i> Tiến độ đã cập nhật gần đây</h3>
-                        <div id="progress-history-container">
-                            <span style="font-size: 7.5px; color: var(--admin-muted);">Chưa có tiến độ nào được ghi
-                                nhận.</span>
-                        </div>
                     </div>
                 </div>
             </section>

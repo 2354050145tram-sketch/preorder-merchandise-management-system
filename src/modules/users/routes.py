@@ -115,9 +115,11 @@ def google_callback():
         return redirect("/products")
     except ValueError as error:
         return response_error(str(error), 400)
-    except Exception as error:
-        print("GOOGLE OAUTH ERROR:", error)
-        return response_error("Có lỗi xảy ra khi đăng nhập Google", 500)
+    except Exception:
+        return response_error(
+            "Có lỗi xảy ra khi đăng nhập Google",
+            500,
+        )
 
 
 @user_bp.route("/oauth/session", methods=["GET"])
@@ -173,11 +175,14 @@ def facebook_callback():
         session["oauth_refresh_token"] = refresh_token
 
         return redirect("/products")
+    
     except ValueError as error:
         return response_error(str(error), 400)
-    except Exception as error:
-        print("FACEBOOK OAUTH ERROR:", error)
-        return response_error("Có lỗi xảy ra khi đăng nhập Facebook", 500)
+    except Exception:
+        return response_error(
+            "Có lỗi xảy ra khi đăng nhập Facebook",
+            500,
+        )
 
 
 @user_bp.route("/refresh", methods=["POST"])
@@ -212,9 +217,6 @@ def get_current_user():
                     "phone_num": user.profile.phone_num if user.profile else None,
                     "address": user.profile.address if user.profile else None,
                     "avatar": user.profile.avatar if user.profile else None,
-                    "background_music": (
-                        user.profile.background_music if user.profile else None
-                    ),
                 },
             }
         )
@@ -240,7 +242,6 @@ def update_user_profile(user_id):
                 "phone_num": profile.phone_num,
                 "address": profile.address,
                 "avatar": profile.avatar,
-                "background_music": profile.background_music,
             },
             "Cập nhật profile thành công",
             200,
@@ -267,11 +268,6 @@ def change_password():
         return response_error("Có lỗi xảy ra khi đổi mật khẩu", 500)
 
 
-# =========================================================================
-# PHÂN HỆ QUẢN TRỊ ADMIN (USERS MANAGEMENT)
-# =========================================================================
-
-
 @user_bp.route("/admin", methods=["GET"])
 @jwt_required()
 def get_admin_users():
@@ -285,12 +281,10 @@ def get_admin_users():
         user_list = []
 
         for u in users:
-            # Truy cập trực tiếp qua u.wallet
             wallet_bal = 0.0
             if u.wallet and u.wallet.balance is not None:
                 wallet_bal = float(u.wallet.balance)
 
-            # Lấy danh sách đơn hàng trực tiếp qua u.orders
             orders_list = []
             if u.orders:
                 orders_list = [{"order_id": o.order_id} for o in u.orders if o.active]
@@ -328,7 +322,6 @@ def get_admin_user_detail(user_id):
 
         u = UserService.get_user_detail_admin(user_id)
 
-        # 1. Danh sách đơn hàng
         orders_data = []
         for o in getattr(u, "orders", []) or []:
             if getattr(o, "active", True):
@@ -351,7 +344,6 @@ def get_admin_user_detail(user_id):
                     }
                 )
 
-        # 2. Nhật ký giao dịch ví
         wallet_trans_data = []
         if getattr(u, "wallet", None) and getattr(u.wallet, "transactions", None):
             for t in u.wallet.transactions:

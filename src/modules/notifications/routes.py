@@ -23,7 +23,9 @@ def send_preorder_notification(preorder_id):
         )
 
         if notification is None:
-            return response_success({}, "Không có khách hàng để gửi thông báo", 200)
+            return response_success(
+                {}, "Không tìm thấy khách hàng thuộc đợt preorder này", 404
+            )
 
         return response_success(
             {"notification": serialize_notification(notification)},
@@ -37,8 +39,11 @@ def send_preorder_notification(preorder_id):
     except ValueError as error:
         return response_error(str(error), 400)
 
-    except Exception:
-        return response_error("Có lỗi xảy ra khi gửi thông báo preorder", 500)
+    except Exception as error:
+        return response_error(
+            str(error) or "Có lỗi xảy ra khi gửi thông báo preorder",
+            500,
+        )
 
 
 @notification_bp.route("/me", methods=["GET"])
@@ -66,10 +71,7 @@ def get_my_notifications():
             404,
         )
 
-    except Exception as error:
-
-        print("GET NOTIFICATIONS ERROR:", error)
-
+    except Exception:
         return response_error(
             "Có lỗi xảy ra khi lấy thông báo",
             500,

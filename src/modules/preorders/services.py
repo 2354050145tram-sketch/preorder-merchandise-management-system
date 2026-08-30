@@ -3,7 +3,6 @@ from sqlalchemy import select
 from decimal import Decimal, InvalidOperation
 from modules.preorders.models import PreOrder
 from modules.products.models import Product, ProductTag
-from modules.notifications.services import NotificationService
 
 
 class PreOrderService:
@@ -18,21 +17,17 @@ class PreOrderService:
         if not progress_note:
             raise ValueError("Ghi chú tiến độ không được để trống")
 
-        # Kiểm tra sản phẩm
         product = db.session.get(Product, product_id)
 
         if not product or not product.active:
             raise ValueError("Sản phẩm không tồn tại")
 
-        # Kiểm tra sản phẩm được mở đợt preorder
         if product.status not in ["PREORDER", "IN_STOCK"]:
             raise ValueError("Sản phẩm không hợp lệ để mở preorder")
 
-        # Kiểm tra ngày mở preorder
         if start_date > end_date:
             raise ValueError("Ngày bắt đầu hoặc kết thúc không hợp lệ")
 
-        # Kiểm tra sản phẩm có preorder đang hoạt động chưa
         stmt = select(PreOrder).where(
             PreOrder.product_id == product_id, PreOrder.active.is_(True)
         )
@@ -42,7 +37,6 @@ class PreOrderService:
         if existing_preorder:
             raise ValueError("Sản phẩm đang có đợt preorder")
 
-        # Tạo preorder
         preorder = PreOrder(
             product_id=product_id,
             start_date=start_date,
@@ -68,11 +62,9 @@ class PreOrderService:
     ):
         stmt = select(PreOrder).join(Product, PreOrder.product_id == Product.product_id)
 
-        # Lọc active
         if active is not None:
             stmt = stmt.where(PreOrder.active == active)
 
-        # Tìm kiếm theo tên sản phẩm
         if keyword and keyword.strip():
             keyword = keyword.strip()
 
@@ -104,7 +96,6 @@ class PreOrderService:
 
         if max_price is not None:
             stmt = stmt.where(Product.price <= max_price)
-        # Lọc theo thẻ
         if tag_ids:
             stmt = stmt.join(
                 ProductTag, Product.product_id == ProductTag.product_id
@@ -128,19 +119,15 @@ class PreOrderService:
     def update_preorder(preorder_id, data):
         preorder = PreOrderService.get_preorder_by_id(preorder_id)
 
-        # Cập nhật ngày bắt đầu
         if "start_date" in data and data["start_date"]:
             preorder.start_date = data["start_date"]
 
-        # Cập nhật ngày kết thúc
         if "end_date" in data and data["end_date"]:
             preorder.end_date = data["end_date"]
 
-        # Kiểm tra lại ngày
         if preorder.start_date > preorder.end_date:
             raise ValueError("Ngày bắt đầu hoặc kết thúc không hợp lệ")
 
-        # Cập nhật ghi chú
         if "progress_note" in data:
             progress_note = (
                 data["progress_note"].strip() if data["progress_note"] else ""
@@ -151,7 +138,6 @@ class PreOrderService:
 
             preorder.progress_note = progress_note
 
-        # Mở / đóng preorder
         if "active" in data:
             new_active = data["active"]
 
@@ -185,8 +171,12 @@ class PreOrderService:
             raise
 
     @staticmethod
-    def update_progress(preorder_id, progress_status, progress_note=None):
-        preorder = PreOrderService.get_preorder_by_id(preorder_id, active=True)
+    def update_progress(
+        preorder_id,
+        progress_status,
+        progress_note=None,
+    ):
+        preorder = PreOrderService.get_preorder_by_id(preorder_id)
 
         valid_statuses = [
             "MỞ PREORDER",
@@ -202,27 +192,15 @@ class PreOrderService:
         if progress_status not in valid_statuses:
             raise ValueError("Tiến độ không hợp lệ")
 
-        if preorder.progress_status == progress_status:
-            raise ValueError("Preorder đã ở tiến độ này")
+        progress_note = progress_note.strip() if progress_note else ""
 
-        current_index = valid_statuses.index(preorder.progress_status)
-
-        new_index = valid_statuses.index(progress_status)
-
-        if new_index < current_index:
-            raise ValueError("Không thể cập nhật lùi tiến độ preorder")
+        if not progress_note:
+            raise ValueError("Nội dung cập nhật không được để trống")
 
         preorder.progress_status = progress_status
+        preorder.progress_note = progress_note
 
-        if progress_note:
-            progress_note = progress_note.strip()
-
-            if progress_note:
-                preorder.progress_note = progress_note
-
-        # Hoàn thành thì tự đóng preorder
-        if progress_status == "HOÀN THÀNH":
-            preorder.active = False
+        preorder.active = progress_status != "HOÀN THÀNH"
 
         try:
             db.session.commit()
@@ -230,17 +208,6 @@ class PreOrderService:
         except Exception:
             db.session.rollback()
             raise
-
-        try:
-            NotificationService.send_preorder_notification(
-                preorder_id=preorder.preorder_id,
-                title="Cập nhật preorder",
-                message=(
-                    f"Tiến độ preorder đã được cập nhật: " f"{preorder.progress_status}"
-                ),
-            )
-        except Exception as error:
-            print(f"Không thể gửi thông báo preorder: " f"{error}")
 
         return preorder
 

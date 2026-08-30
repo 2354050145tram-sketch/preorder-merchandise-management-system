@@ -106,7 +106,7 @@ async function restoreOAuthLogin() {
         );
     }
 }
- 
+
 openFilterBtn.addEventListener(
     "click",
     () => {
@@ -140,12 +140,12 @@ filterOverlay.addEventListener(
         }
     }
 );
- 
+
 function formatPrice(price) {
     return Number(price)
         .toLocaleString("vi-VN") + "đ";
 }
- 
+
 function getStatus(product) {
     if (
         product.status
@@ -164,7 +164,7 @@ function getStatus(product) {
         </span>
     `;
 }
- 
+
 function getProductTags(product) {
 
     if (
@@ -191,7 +191,7 @@ function getProductTags(product) {
     );
 
 }
- 
+
 function getProductImage(product) {
     if (product.image) {
         return `
@@ -220,7 +220,7 @@ function getProductImage(product) {
         </div>
     `;
 }
- 
+
 function renderProducts(products) {
     productGrid.innerHTML = "";
 
@@ -291,18 +291,18 @@ function renderProducts(products) {
                 <button
                     class="add-cart
                         ${product.status === "PREORDER"
-                                && !product.preorder_available
-                                ? "disabled"
-                                : ""
-                            }
+                && !product.preorder_available
+                ? "disabled"
+                : ""
+            }
                     "
                     type="button"
 
                     ${product.status === "PREORDER"
-                                && !product.preorder_available
-                                ? "disabled"
-                                : ""
-                            }
+                && !product.preorder_available
+                ? "disabled"
+                : ""
+            }
                 >
                     <i class='bx bx-cart-add'></i>
                 </button>
@@ -426,173 +426,144 @@ function renderProducts(products) {
         }
 
 
-        // =========================================
-        // ADD TO CART
-        // =========================================
 
         const addCartBtn =
-    card.querySelector(".add-cart");
+            card.querySelector(".add-cart");
 
 
-addCartBtn.addEventListener(
-    "click",
-    async event => {
+        addCartBtn.addEventListener(
+            "click",
+            async event => {
 
-        event.stopPropagation();
-
-
-        // =========================================
-        // PREORDER ĐÃ HẾT / CHƯA MỞ
-        // =========================================
-
-        if (
-            product.status === "PREORDER"
-            && !product.preorder_available
-        ) {
-            return;
-        }
+                event.stopPropagation();
 
 
-        const token =
-            localStorage.getItem(
-                "access_token"
-            );
 
-
-        // =========================================
-        // CHƯA ĐĂNG NHẬP
-        // =========================================
-
-        if (!token) {
-
-            localStorage.setItem(
-                "redirect_after_login",
-                window.location.pathname
-                + window.location.search
-                + window.location.hash
-            );
-
-            window.location.href =
-                "/login";
-
-            return;
-        }
-
-
-        // =========================================
-        // KIỂM TRA PREORDER ID
-        // =========================================
-
-        if (
-            product.status === "PREORDER"
-            && !product.preorder_id
-        ) {
-            console.error(
-                "Sản phẩm preorder không có preorder_id:",
-                product
-            );
-
-            return;
-        }
-
-
-        // =========================================
-        // LẤY CART
-        // =========================================
-
-        let cart =
-            JSON.parse(
-                localStorage.getItem(
-                    "verdia_cart"
-                )
-            ) || [];
-
-
-        const existingItem =
-            cart.find(
-                item =>
-                    Number(item.product_id)
-                    === Number(product.product_id)
-            );
-
-
-        // =========================================
-        // SẢN PHẨM ĐÃ CÓ
-        // =========================================
-
-        if (existingItem) {
-
-            existingItem.quantity += 1;
-
-            // Đồng bộ preorder_id mới nhất
-            if (
-                product.status === "PREORDER"
-            ) {
-                existingItem.preorder_id =
-                    product.preorder_id;
-            }
-
-        } else {
-
-            // =====================================
-            // THÊM SẢN PHẨM MỚI
-            // =====================================
-
-            cart.push({
-
-                cart_item_id:
-                    Date.now(),
-
-                product_id:
-                    product.product_id,
-
-                product_name:
-                    product.product_name,
-
-                price:
-                    Number(product.price),
-
-                quantity:
-                    1,
-
-                status:
-                    product.status,
-
-                preorder_id:
+                if (
                     product.status === "PREORDER"
-                        ? product.preorder_id
-                        : null,
+                    && !product.preorder_available
+                ) {
+                    return;
+                }
 
-                tags:
-                    product.tags
-                        ? product.tags.map(
-                            tag => tag.name
+
+                const token =
+                    localStorage.getItem(
+                        "access_token"
+                    );
+
+
+
+                if (!token) {
+
+                    localStorage.setItem(
+                        "redirect_after_login",
+                        window.location.pathname
+                        + window.location.search
+                        + window.location.hash
+                    );
+
+                    window.location.href =
+                        "/login";
+
+                    return;
+                }
+
+
+                if (
+                    product.status === "PREORDER"
+                    && !product.preorder_id
+                ) {
+                    console.error(
+                        "Sản phẩm preorder không có preorder_id:",
+                        product
+                    );
+
+                    return;
+                }
+
+
+
+                let cart =
+                    JSON.parse(
+                        localStorage.getItem(
+                            "verdia_cart"
                         )
-                        : [],
-
-                image:
-                    product.image || ""
-            });
-        }
+                    ) || [];
 
 
-        // =========================================
-        // SAVE CART
-        // =========================================
+                const existingItem =
+                    cart.find(
+                        item =>
+                            Number(item.product_id)
+                            === Number(product.product_id)
+                    );
 
-        localStorage.setItem(
-            "verdia_cart",
-            JSON.stringify(cart)
+
+
+                if (existingItem) {
+
+                    existingItem.quantity += 1;
+
+                    if (
+                        product.status === "PREORDER"
+                    ) {
+                        existingItem.preorder_id =
+                            product.preorder_id;
+                    }
+
+                } else {
+
+
+                    cart.push({
+
+                        cart_item_id:
+                            Date.now(),
+
+                        product_id:
+                            product.product_id,
+
+                        product_name:
+                            product.product_name,
+
+                        price:
+                            Number(product.price),
+
+                        quantity:
+                            1,
+
+                        status:
+                            product.status,
+
+                        preorder_id:
+                            product.status === "PREORDER"
+                                ? product.preorder_id
+                                : null,
+
+                        tags:
+                            product.tags
+                                ? product.tags.map(
+                                    tag => tag.name
+                                )
+                                : [],
+
+                        image:
+                            product.image || ""
+                    });
+                }
+
+
+
+                localStorage.setItem(
+                    "verdia_cart",
+                    JSON.stringify(cart)
+                );
+
+
+
+                animateToCart(card);
+            }
         );
-
-
-        // =========================================
-        // ANIMATION
-        // =========================================
-
-        animateToCart(card);
-    }
-);
 
 
         productGrid.appendChild(
@@ -600,7 +571,7 @@ addCartBtn.addEventListener(
         );
     });
 }
- 
+
 async function loadProducts() {
     loadingState.style.display =
         "block";
@@ -739,7 +710,7 @@ async function loadProducts() {
             "0";
     }
 }
- 
+
 async function loadCategories() {
     try {
         const response =
@@ -806,7 +777,7 @@ async function loadCategories() {
         `;
     }
 }
- 
+
 function getCategoryLabel(name) {
     const labels = {
         GAME: "Game",
@@ -816,7 +787,7 @@ function getCategoryLabel(name) {
 
     return labels[name] || name;
 }
- 
+
 function getSubCategoryLabel(name) {
     const labels = {
         ANIME: "Anime",
@@ -832,7 +803,7 @@ function getSubCategoryLabel(name) {
 
     return labels[name] || name;
 }
- 
+
 async function loadSubCategories(
     categoryId
 ) {
@@ -910,7 +881,7 @@ async function loadSubCategories(
                 );
             }
         );
-         if (
+        if (
             subCategories.length === 1
         ) {
             subCategorySelect.value =
@@ -933,7 +904,7 @@ async function loadSubCategories(
         `;
     }
 }
- 
+
 function resetSubCategory() {
     subCategorySelect.innerHTML = `
         <option value="">
@@ -944,7 +915,7 @@ function resetSubCategory() {
     subCategoryGroup.style.display =
         "none";
 }
- 
+
 function resetTags() {
     tagGroup.style.display =
         "none";
@@ -955,7 +926,7 @@ function resetTags() {
         </p>
     `;
 }
- 
+
 async function loadTags(
     subCategoryId
 ) {
@@ -1052,7 +1023,7 @@ async function loadTags(
         `;
     }
 }
- 
+
 categorySelect.addEventListener(
     "change",
     async () => {
@@ -1064,7 +1035,7 @@ categorySelect.addEventListener(
         );
     }
 );
- 
+
 subCategorySelect.addEventListener(
     "change",
     async () => {
@@ -1076,7 +1047,7 @@ subCategorySelect.addEventListener(
         );
     }
 );
- 
+
 function applySort() {
     const sort =
         sortSelect.value;
@@ -1085,9 +1056,6 @@ function applySort() {
         [...currentProducts];
 
 
-    // =========================================
-    // SORT THEO LỰA CHỌN
-    // =========================================
 
     if (sort === "price-asc") {
         products.sort(
@@ -1131,9 +1099,6 @@ function applySort() {
     }
 
 
-    // =========================================
-    // PREORDER HẾT ĐỢT LUÔN XUỐNG CUỐI
-    // =========================================
 
     products.sort(
         (a, b) => {
@@ -1167,7 +1132,7 @@ function applySort() {
         products
     );
 }
- 
+
 searchBtn.addEventListener(
     "click",
     () => {
@@ -1188,7 +1153,7 @@ keywordInput.addEventListener(
         }
     }
 );
- 
+
 applyFilterBtn.addEventListener(
     "click",
     () => {
@@ -1201,7 +1166,7 @@ applyFilterBtn.addEventListener(
         loadProducts();
     }
 );
- 
+
 clearFilterBtn.addEventListener(
     "click",
     () => {
@@ -1236,14 +1201,14 @@ clearFilterBtn.addEventListener(
         loadProducts();
     }
 );
- 
+
 sortSelect.addEventListener(
     "change",
     () => {
         applySort();
     }
 );
- 
+
 const urlParams =
     new URLSearchParams(
         window.location.search
@@ -1271,7 +1236,7 @@ if (
         hasSearchOrFilter = true;
     }
 }
- 
+
 async function initProducts() {
     await restoreOAuthLogin();
 

@@ -167,7 +167,6 @@ class OrderService:
 
         if keyword and keyword.strip():
             kw = keyword.strip()
-            # Cho phép tìm kiếm cả theo Mã đơn (nếu gõ số) hoặc username/email
             if kw.isdigit():
                 stmt = stmt.join(User, Order.user_id == User.user_id).where(
                     (Order.order_id == int(kw))
@@ -417,6 +416,19 @@ class OrderService:
                 db.session.add(transaction)
 
             order_item.item_status = "ĐÃ HỦY"
+
+            new_total_amount = Decimal("0")
+
+            for item in order.order_items:
+
+                if item.item_status == "ĐÃ HỦY":
+                    continue
+
+                new_total_amount += Decimal(str(item.price)) * Decimal(
+                    str(item.quantity)
+                )
+
+            order.total_amount = new_total_amount
 
             all_cancelled = all(
                 item.item_status == "ĐÃ HỦY" for item in order.order_items
@@ -807,7 +819,6 @@ class PaymentService:
 
     @staticmethod
     def get_preorder_customers_by_product(product_id):
-        # Truy vấn danh sách order chứa order_item có product_id tương ứng và là hàng preorder
         stmt = (
             select(
                 Order.order_id,
