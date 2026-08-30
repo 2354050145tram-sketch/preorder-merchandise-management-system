@@ -1,0 +1,554 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Tài khoản - Verdia Merchandise{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+
+{% block content %}
+
+<main class="profile-page">
+
+    <div class="page-heading">
+
+        <p>MY VERDIA</p>
+
+        <h1>Tài khoản của tôi</h1>
+
+    </div>
+
+
+    <div class="profile-layout">
+
+        <aside class="profile-sidebar">
+
+            <div class="profile-user">
+
+                <div class="profile-avatar">
+
+                    <img id="sidebar-avatar" src="{{ url_for('static', filename='images/default/default_avatar.png') }}"
+                        alt="Avatar">
+
+                </div>
+
+
+                <div class="profile-user-info">
+
+                    <strong id="sidebar-username">
+                        Đang tải...
+                    </strong>
+
+                    <span id="sidebar-email">
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <nav class="profile-menu">
+
+                <button class="profile-menu-item active" data-tab="overview">
+                    <i class='bx bx-grid-alt'></i>
+                    Tổng quan
+                </button>
+
+
+                <button class="profile-menu-item" data-tab="personal">
+                    <i class='bx bx-user'></i>
+                    Thông tin cá nhân
+                </button>
+
+
+                <button class="profile-menu-item" data-tab="orders">
+                    <i class='bx bx-package'></i>
+                    Đơn hàng
+                </button>
+
+
+                <button class="profile-menu-item" data-tab="preorder-orders">
+                    <i class='bx bx-time-five'></i>
+                    Đơn hàng Pre-order
+                </button>
+
+
+                <button class="profile-menu-item" data-tab="wallet">
+                    <i class='bx bx-wallet'></i>
+                    Ví Verd
+                </button>
+
+
+                <button type="button" id="logout-btn" class="profile-menu-item logout-btn">
+                    <i class='bx bx-log-out'></i>
+                    <span>Đăng xuất</span>
+                </button>
+
+            </nav>
+
+        </aside>
+
+        <section class="profile-content">
+
+            <div class="profile-tab active" id="overview">
+
+                <div class="overview-grid">
+
+                    <div class="overview-card">
+
+                        <div class="overview-icon gold">
+
+                            <i class='bx bx-user'></i>
+
+                        </div>
+
+                        <div>
+
+                            <span>Tài khoản</span>
+
+                            <strong id="overview-username">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                    <div class="overview-card">
+
+                        <div class="overview-icon olive">
+
+                            <i class='bx bx-package'></i>
+
+                        </div>
+
+                        <div>
+
+                            <span>Đơn đã mua</span>
+
+                            <strong id="overview-orders">
+                                0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                    <div class="overview-card">
+
+                        <div class="overview-icon blue">
+
+                            <i class='bx bx-wallet'></i>
+
+                        </div>
+
+                        <div>
+
+                            <span>Số dư Ví Verd</span>
+
+                            <strong id="overview-wallet">
+                                0đ
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="profile-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <h2>Đơn hàng gần đây</h2>
+
+                            <p>
+                                Theo dõi trạng thái đơn hàng của bạn
+                            </p>
+
+                        </div>
+
+
+                        <button class="text-button" data-open-tab="orders">
+                            Xem tất cả
+
+                            <i class='bx bx-right-arrow-alt'></i>
+                        </button>
+
+                    </div>
+
+
+                    <div id="recent-orders" class="order-list">
+
+                        <div class="profile-empty">
+
+                            <i class='bx bx-package'></i>
+
+                            <p>
+                                Chưa có đơn hàng
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="profile-tab" id="personal">
+
+                <div class="profile-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <h2>Thông tin cá nhân</h2>
+
+                            <p>
+                                Quản lý thông tin tài khoản của bạn
+                            </p>
+
+                        </div>
+
+
+                        <button type="button" class="edit-profile-btn" id="edit-profile-btn">
+
+                            <i class='bx bx-edit-alt'></i>
+
+                            Chỉnh sửa
+
+                        </button>
+
+                    </div>
+
+
+                    <form id="profile-form" class="profile-form">
+
+                        <div class="form-grid">
+
+
+                            <div class="form-group">
+
+                                <label>
+                                    Tên đăng nhập
+                                </label>
+
+                                <input type="text" id="profile-username" disabled>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label>
+                                    Email
+                                </label>
+
+                                <input type="email" id="profile-email" disabled>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label>
+                                    Họ và tên
+                                </label>
+
+                                <input type="text" id="profile-full-name" disabled>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label>
+                                    Số điện thoại
+                                </label>
+
+                                <input type="text" id="profile-phone" disabled>
+
+                            </div>
+
+
+                            <div class="form-group full-width">
+
+                                <label>
+                                    Địa chỉ
+                                </label>
+
+                                <textarea id="profile-address" rows="3" disabled></textarea>
+
+                            </div>
+
+
+                            <div class="form-group full-width">
+
+                                <label>
+                                    Avatar
+                                </label>
+
+                                <input type="text" id="profile-avatar" placeholder="URL ảnh đại diện" disabled>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="profile-form-actions" id="profile-form-actions" style="display: none;">
+
+                            <button type="button" id="cancel-edit-btn" class="secondary-btn">
+                                Hủy
+                            </button>
+
+
+                            <button type="submit" class="primary-btn">
+                                Lưu thay đổi
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+            <div class="profile-tab" id="orders">
+
+                <div class="profile-card order-page-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <h2>
+                                Đơn hàng của tôi
+                            </h2>
+
+                            <p>
+                                Theo dõi tình trạng xử lý và giao hàng
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="order-filter">
+
+                        <button class="order-filter-btn active" data-order-filter="ALL">
+                            Tất cả
+                        </button>
+
+
+                        <button class="order-filter-btn" data-order-filter="CHỜ XÁC NHẬN">
+                            Chờ xác nhận
+                        </button>
+
+
+                        <button class="order-filter-btn" data-order-filter="ĐANG XỬ LÝ">
+                            Đang xử lý
+                        </button>
+
+
+                        <button class="order-filter-btn" data-order-filter="ĐANG LẤY HÀNG">
+                            Chờ lấy hàng
+                        </button>
+
+
+                        <button class="order-filter-btn" data-order-filter="ĐANG GIAO HÀNG">
+                            Đang giao
+                        </button>
+
+
+                        <button class="order-filter-btn" data-order-filter="ĐÃ GIAO">
+                            Hoàn thành
+                        </button>
+
+                    </div>
+
+
+                    <div id="order-list" class="order-list shopee-order-list">
+
+                        <div class="profile-empty">
+
+                            <i class='bx bx-package'></i>
+
+                            <p>
+                                Chưa có dữ liệu đơn hàng
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="profile-tab" id="preorder-orders">
+
+                <div class="profile-card preorder-order-page-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <h2>
+                                Đơn hàng Pre-order
+                            </h2>
+
+                            <p>
+                                Theo dõi tiến độ các sản phẩm Pre-order đã đặt
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="preorder-order-filter">
+
+                        <button class="preorder-filter-btn active" data-preorder-status="ALL">
+                            Tất cả
+                        </button>
+
+
+                        <button class="preorder-filter-btn" data-preorder-status="PREORDER">
+                            Pre-order
+                        </button>
+
+
+                        <button class="preorder-filter-btn" data-preorder-status="PRODUCTION">
+                            Sản xuất
+                        </button>
+
+
+                        <button class="preorder-filter-btn" data-preorder-status="IN_TRANSIT">
+                            Đang về
+                        </button>
+
+
+                        <button class="preorder-filter-btn" data-preorder-status="COMPLETED">
+                            Hoàn thành
+                        </button>
+
+                    </div>
+
+
+                    <div id="preorder-order-list" class="preorder-order-list">
+
+                        <div class="profile-empty">
+
+                            <i class='bx bx-time-five'></i>
+
+                            <p>
+                                Chưa có đơn hàng Pre-order
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="profile-tab" id="wallet">
+
+                <div class="wallet-card">
+
+                    <div>
+
+                        <span>
+                            Số dư Ví Verd
+                        </span>
+
+                        <strong id="wallet-balance">
+                            0đ
+                        </strong>
+
+                    </div>
+
+
+                    <i class='bx bx-wallet'></i>
+
+                </div>
+
+
+                <div class="wallet-actions">
+
+                    <button type="button" class="wallet-action-btn" id="deposit-wallet-btn">
+
+                        <i class='bx bx-plus-circle'></i>
+
+                        <span>Nạp Ví Verd</span>
+
+                    </button>
+
+
+                    <button type="button" class="wallet-action-btn" id="withdraw-wallet-btn">
+
+                        <i class='bx bx-minus-circle'></i>
+
+                        <span>Rút Ví Verd</span>
+
+                    </button>
+
+                </div>
+
+
+                <div class="profile-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <h2>Lịch sử giao dịch</h2>
+
+                            <p>
+                                Các giao dịch của Ví Verd
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="wallet-history" class="wallet-history">
+
+                        <div class="profile-empty">
+
+                            <i class='bx bx-receipt'></i>
+
+                            <p>
+                                Chưa có giao dịch
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+<div id="profile-toast" class="profile-toast">
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Thanh toán - Verdia Merchandise</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/checkout.css') }}">
+
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <header class="header">
+
+        <a href="/" class="logo">
+
+            <img src="{{ url_for('static', filename='images/logo/logo_verdia.png') }}" alt="Verdia Merchandise">
+
+        </a>
+
+        <div class="checkout-title">
+            Thanh toán
+        </div>
+
+        <a href="/cart" class="back-cart">
+            <i class='bx bx-left-arrow-alt'></i>
+            Giỏ hàng
+        </a>
+
+    </header>
+
+
+    <main class="checkout-page">
+
+        <section class="checkout-box address-box">
+
+            <div class="box-title">
+
+                <i class='bx bxs-map'></i>
+
+                <h2>
+                    Địa chỉ nhận hàng
+                </h2>
+
+            </div>
+
+
+            <div id="address-loading" class="loading-text">
+                Đang tải thông tin...
+            </div>
+
+
+            <div id="address-content" class="address-content" style="display: none;">
+
+                <div class="receiver">
+
+                    <strong id="receiver-name">
+                    </strong>
+
+                    <span id="receiver-phone">
+                    </span>
+
+                </div>
+
+                <div id="receiver-address" class="receiver-address">
+                </div>
+
+                <a href="/profile" class="change-address">
+                    Thay đổi
+                </a>
+
+            </div>
+
+        </section>
+
+        <section class="checkout-box">
+
+            <div class="product-header">
+
+                <div>Sản phẩm</div>
+
+                <div>Đơn giá</div>
+
+                <div>Số lượng</div>
+
+                <div>Thành tiền</div>
+
+            </div>
+
+
+            <div id="checkout-products">
+            </div>
+
+        </section>
+
+        <section class="checkout-box payment-box">
+
+            <div class="box-title">
+
+                <i class='bx bx-credit-card'></i>
+
+                <h2>
+                    Phương thức thanh toán
+                </h2>
+
+            </div>
+
+
+            <div class="payment-methods">
+
+                <label class="payment-method">
+
+                    <input type="radio" name="payment_method" value="MOMO" checked>
+
+                    <div class="payment-method-content">
+
+                        <i class='bx bx-qr'></i>
+
+                        <div>
+                            <strong>MoMo</strong>
+
+                            <span>
+                                Thanh toán qua MoMo
+                            </span>
+                        </div>
+
+                    </div>
+
+                </label>
+
+
+                <label class="payment-method">
+
+                    <input type="radio" name="payment_method" value="VÍ VERD">
+
+                    <div class="payment-method-content">
+
+                        <i class='bx bx-wallet'></i>
+
+                        <div>
+                            <strong>Ví Verd</strong>
+
+                            <span>
+                                Sử dụng số dư Ví Verd
+                            </span>
+                        </div>
+
+                    </div>
+
+                </label>
+
+            </div>
+
+        </section>
+
+        <section class="checkout-box deposit-box" id="deposit-box" style="display: none;">
+
+            <div class="box-title">
+
+                <i class='bx bx-money'></i>
+
+                <h2>
+                    Hình thức thanh toán Pre-order
+                </h2>
+
+            </div>
+
+
+            <div class="deposit-options">
+
+                <label class="deposit-option">
+
+                    <input type="radio" name="payment_type" value="FULL" checked>
+
+                    <div>
+
+                        <strong>
+                            Thanh toán 100%
+                        </strong>
+
+                        <p>
+                            Thanh toán toàn bộ giá trị đơn hàng.
+                        </p>
+
+                    </div>
+
+                    <span id="full-payment-amount" class="option-price">
+                        0đ
+                    </span>
+
+                </label>
+
+
+                <label class="deposit-option" id="deposit-option">
+
+                    <input type="radio" name="payment_type" value="DEPOSIT">
+
+                    <div>
+
+                        <strong>
+                            Đặt cọc 70%
+                        </strong>
+
+                        <p>
+                            Áp dụng cho sản phẩm Pre-order.
+                            Sản phẩm có sẵn vẫn thanh toán 100%.
+                        </p>
+
+                    </div>
+
+                    <span id="deposit-payment-amount" class="option-price">
+                        0đ
+                    </span>
+
+                </label>
+
+            </div>
+
+        </section>
+
+        <section class="checkout-box summary-box">
+
+            <div class="summary-row">
+
+                <span>
+                    Tổng tiền hàng
+                </span>
+
+                <span id="subtotal">
+                    0đ
+                </span>
+
+            </div>
+
+
+            <div class="summary-row" id="preorder-row" style="display: none;">
+
+                <span>
+                    Tổng sản phẩm Pre-order
+                </span>
+
+                <span id="preorder-total">
+                    0đ
+                </span>
+
+            </div>
+
+
+            <div class="summary-row" id="instock-row" style="display: none;">
+
+                <span>
+                    Tổng sản phẩm có sẵn
+                </span>
+
+                <span id="instock-total">
+                    0đ
+                </span>
+
+            </div>
+
+
+            <div class="summary-row remaining-row" id="remaining-row" style="display: none;">
+
+                <span>
+                    Còn lại phải thanh toán sau
+                </span>
+
+                <span id="remaining-amount">
+                    0đ
+                </span>
+
+            </div>
+
+
+            <div class="summary-divider">
+            </div>
+
+
+            <div class="summary-total">
+
+                <span>
+                    Tổng thanh toán
+                </span>
+
+                <strong id="pay-now-total">
+                    0đ
+                </strong>
+
+            </div>
+
+
+            <div class="place-order-row">
+
+                <p id="payment-note">
+                    Vui lòng kiểm tra lại thông tin trước khi đặt hàng.
+                </p>
+
+                <button id="place-order-btn" type="button">
+                    Đặt hàng
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
+
+</body>
+
+</html>

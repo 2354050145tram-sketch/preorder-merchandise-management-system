@@ -1,0 +1,277 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Chi tiết sản phẩm - Verdia Merchandise{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product_details.css') }}">
+{% endblock %}
+
+
+{% block content %}
+
+<main class="product-detail-page">
+
+    <div class="breadcrumb">
+
+        <a href="/">
+            Trang chủ
+        </a>
+
+        <i class='bx bx-chevron-right'></i>
+
+        <a href="/products">
+            Sản phẩm
+        </a>
+
+        <i class='bx bx-chevron-right'></i>
+
+        <span id="breadcrumb-product">
+            Chi tiết
+        </span>
+
+    </div>
+
+    <div id="product-detail-loading" class="detail-state">
+        Đang tải sản phẩm...
+    </div>
+
+    <div id="product-detail-error" class="detail-state" style="display: none;">
+
+        <i class='bx bx-package'></i>
+
+        <h2>
+            Không thể tải sản phẩm
+        </h2>
+
+        <a href="/products">
+            Quay lại sản phẩm
+        </a>
+
+    </div>
+
+    <section id="product-detail" class="product-detail-card" style="display: none;">
+
+        <div class="product-gallery">
+
+            <div class="main-image">
+
+                <img id="detail-image" src="" alt="Sản phẩm">
+
+                <div id="detail-image-placeholder" class="detail-image-placeholder" style="display: none;">
+                    <i class='bx bx-image'></i>
+                </div>
+
+            </div>
+
+
+            <div class="image-caption">
+
+                <i class='bx bx-sun'></i>
+
+                <span>
+                    Verdia Selection
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="product-detail-info">
+
+            <div id="detail-status" class="detail-status">
+            </div>
+
+            <div id="detail-tags" class="detail-tags">
+            </div>
+
+            <h1 id="detail-name">
+            </h1>
+
+            <div id="detail-price" class="detail-price">
+            </div>
+
+            <div id="preorder-info-box" class="preorder-info-box" style="display: none;">
+
+                <div class="preorder-info-icon">
+
+                    <i class='bx bx-time-five'></i>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        TÌNH TRẠNG PRE-ORDER
+                    </span>
+
+                    <strong id="preorder-state">
+                    </strong>
+
+                    <p id="preorder-date">
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="detail-description">
+
+                <h3>
+                    Giới thiệu
+                </h3>
+
+                <p id="detail-description">
+                </p>
+
+            </div>
+
+            <div class="quantity-section" id="quantity-section">
+
+                <span class="quantity-label">
+                    Số lượng
+                </span>
+
+
+                <div class="quantity-control">
+
+                    <button type="button" id="decrease-quantity">
+                        <i class='bx bx-minus'></i>
+                    </button>
+
+
+                    <input type="number" id="product-quantity" min="1" value="1" readonly>
+
+
+                    <button type="button" id="increase-quantity">
+                        <i class='bx bx-plus'></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="detail-actions">
+
+                <button type="button" id="add-cart-detail" class="detail-add-cart">
+
+                    <i class='bx bx-cart-add'></i>
+
+                    Thêm vào giỏ
+
+                </button>
+
+
+                <button type="button" id="buy-now-detail" class="detail-buy-now">
+                    Mua ngay
+                </button>
+
+            </div>
+
+            <div class="verdia-note">
+
+                <div>
+
+                    <i class='bx bx-package'></i>
+
+                    <span>
+                        Merchandise tuyển chọn
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <i class='bx bx-shield-quarter'></i>
+
+                    <span>
+                        Thông tin minh bạch
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <i class='bx bx-bell'></i>
+
+                    <span>
+                        Theo dõi tiến độ pre-order
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section id="product-information" class="product-information" style="display: none;">
+
+        <div class="information-heading">
+
+            <p>
+                VERDIA MERCHANDISE
+            </p>
+
+            <h2>
+                Thông tin sản phẩm
+            </h2>
+
+        </div>
+
+
+        <div class="information-grid">
+
+            <div class="information-row">
+
+                <span>
+                    Trạng thái
+                </span>
+
+                <strong id="information-status">
+                </strong>
+
+            </div>
+
+
+            <div class="information-row">
+
+                <span>
+                    Danh mục
+                </span>
+
+                <strong id="information-tags">
+                </strong>
+
+            </div>
+
+
+            <div class="information-row full">
+
+                <span>
+                    Mô tả
+                </span>
+
+                <p id="information-description">
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<div id="product-detail-toast" class="product-detail-toast">
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/product_details.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,267 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+Chi tiết đơn hàng - Verdia Merchandise
+{% endblock %}
+
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/order_details.css') }}">
+{% endblock %}
+
+
+{% block content %}
+
+<main class="order-detail-page">
+
+    <a href="/profile" class="order-back">
+        <i class='bx bx-left-arrow-alt'></i>
+        Trở lại đơn hàng
+    </a>
+
+    <div id="order-detail-loading" class="order-detail-state">
+        Đang tải chi tiết đơn hàng...
+    </div>
+
+    <div id="order-detail-error" class="order-detail-state" style="display: none;">
+
+        <i class='bx bx-package'></i>
+
+        <h2>
+            Không thể tải đơn hàng
+        </h2>
+
+        <a href="/profile">
+            Quay lại tài khoản
+        </a>
+
+    </div>
+
+    <div id="order-detail-content" style="display: none;">
+
+        <section class="order-detail-header">
+
+            <div>
+
+                <p>
+                    VERDIA ORDER
+                </p>
+
+                <h1>
+                    Đơn hàng
+                    #<span id="detail-order-id"></span>
+                </h1>
+
+                <span id="detail-order-date">
+                </span>
+
+            </div>
+
+
+            <div class="order-header-right">
+
+                <div id="detail-order-status" class="detail-order-status">
+                </div>
+
+                <div id="order-actions" class="order-actions" style="display: none;">
+                    <a id="pay-order-btn" href="#" class="order-action-btn order-action-pay">
+
+                        <i class='bx bx-credit-card'></i>
+
+                        Thanh toán ngay
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="detail-box">
+
+            <div class="detail-box-title">
+
+                <i class='bx bx-package'></i>
+
+                <h2>
+                    Tình trạng đơn hàng
+                </h2>
+
+            </div>
+
+
+            <div id="shipping-timeline" class="shipping-timeline">
+            </div>
+
+        </section>
+
+        <section class="detail-box" id="preorder-detail-box" style="display: none;">
+
+            <div class="detail-box-title">
+
+                <i class='bx bx-time-five'></i>
+
+                <h2>
+                    Tiến độ Pre-order
+                </h2>
+
+            </div>
+
+
+            <div id="preorder-detail-list" class="preorder-detail-list">
+            </div>
+
+        </section>
+
+        <section class="detail-box">
+
+            <div class="detail-box-title">
+
+                <i class='bx bx-shopping-bag'></i>
+
+                <h2>
+                    Sản phẩm
+                </h2>
+
+            </div>
+
+
+            <div id="detail-product-list" class="detail-product-list">
+            </div>
+
+        </section>
+
+        <section class="detail-box" id="shipping-info-box">
+
+            <div class="detail-box-title">
+
+                <i class='bx bx-truck'></i>
+
+                <h2>
+                    Thông tin vận chuyển
+                </h2>
+
+            </div>
+
+
+            <div id="shipping-info-list" class="shipping-info-list">
+            </div>
+
+        </section>
+
+        <section class="detail-box">
+
+            <div class="detail-box-title">
+
+                <i class='bx bx-credit-card'></i>
+
+                <h2>
+                    Thanh toán
+                </h2>
+
+            </div>
+
+
+            <div class="payment-summary">
+
+                <div>
+                    <span>
+                        Hàng có sẵn
+                    </span>
+
+                    <strong id="detail-instock-total">
+                        0đ
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>
+                        Hàng Pre-order
+                    </span>
+
+                    <strong id="detail-preorder-total">
+                        0đ
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>
+                        Phí vận chuyển
+                    </span>
+
+                    <strong id="detail-shipping-fee">
+                        0đ
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>
+                        Đã thanh toán
+                    </span>
+
+                    <strong id="detail-paid-total">
+                        0đ
+                    </strong>
+                </div>
+
+
+                <div id="remaining-payment-row" class="remaining-payment-row">
+                    <span>
+                        Còn phải thanh toán
+                    </span>
+
+                    <strong id="detail-remaining-total">
+                        0đ
+                    </strong>
+                </div>
+
+
+                <div class="payment-grand-total">
+
+                    <span>
+                        Tổng đơn hàng
+                    </span>
+
+                    <strong id="detail-grand-total">
+                        0đ
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="detail-box">
+
+            <div class="detail-box-title">
+
+                <i class='bx bx-receipt'></i>
+
+                <h2>
+                    Lịch sử thanh toán
+                </h2>
+
+            </div>
+
+
+            <div id="detail-payment-list" class="detail-payment-list">
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script src="{{ url_for('static', filename='js/order_details.js') }}"></script>
+
+{% endblock %}

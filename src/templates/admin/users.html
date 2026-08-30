@@ -1,0 +1,196 @@
+{% extends "layouts/admin_base.html" %}
+
+{% block title %}
+Quản lý người dùng - Verdia Admin
+{% endblock %}
+
+{% block breadcrumb %}
+<span>Người dùng</span>
+<i class='bx bx-chevron-right'></i>
+<strong id="user-breadcrumb-current">Danh sách</strong>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_users.css') }}">
+{% endblock %}
+
+{% block control_panel %}
+
+<section class="admin-control-panel" id="user-list-control-panel">
+    <div class="admin-control-left">
+        <button type="button" id="reload-users-btn" class="admin-btn admin-btn-secondary">
+            <i class='bx bx-refresh'></i> Làm mới
+        </button>
+    </div>
+
+    <div class="admin-control-right">
+        <div class="admin-product-search">
+            <i class='bx bx-search'></i>
+            <input type="text" id="admin-user-keyword" placeholder="Tìm theo ID, username, email...">
+        </div>
+
+        <select id="admin-user-sort" class="admin-select">
+            <option value="newest">Mới nhất</option>
+            <option value="oldest">Cũ nhất</option>
+            <option value="wallet_desc">Nạp nhiều</option>
+            <option value="wallet_asc">Nạp ít</option>
+            <option value="orders_desc">Mua nhiều đơn nhất</option>
+            <option value="orders_asc">Mua ít đơn nhất</option>
+        </select>
+    </div>
+</section>
+
+
+<section class="admin-control-panel" id="user-form-control-panel" style="display: none !important;">
+    <div class="admin-control-left">
+        <button type="button" id="discard-user-btn" class="admin-btn admin-btn-secondary">
+            <i class='bx bx-arrow-back'></i> Quay lại danh sách
+        </button>
+        <div id="user-header-actions" style="display: inline-flex; gap: 8px;"></div>
+    </div>
+
+    <div class="admin-control-right">
+        <span class="product-form-mode" id="user-form-mode">Người dùng #—</span>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+
+<section id="user-list-view" class="product-view">
+    <section class="admin-panel product-list-panel">
+        <div id="admin-user-loading" class="admin-product-state">
+            <i class='bx bx-loader-alt bx-spin'></i>
+            <span>Đang tải danh sách người dùng...</span>
+        </div>
+
+        <div id="admin-user-empty" class="admin-product-state" style="display: none;">
+            <i class='bx bx-user'></i>
+            <strong>Không tìm thấy người dùng</strong>
+            <span>Chưa có người dùng nào hoặc hãy thay đổi bộ lọc tìm kiếm.</span>
+        </div>
+
+        <div class="admin-user-table-wrapper">
+            <table id="admin-user-table" class="admin-user-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">ID</th>
+                        <th style="width: 25%;">Tài khoản <span class="table-product-count"
+                                id="admin-table-user-count">(0)</span></th>
+                        <th style="width: 25%;">Email</th>
+                        <th style="width: 15%;">Vai trò</th>
+                        <th style="width: 15%;">Số dư Ví Verd</th>
+                        <th style="width: 10%; text-align: center;">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-user-table-body"></tbody>
+            </table>
+        </div>
+
+        <div class="admin-pagination" id="admin-user-pagination" style="display: none;">
+            <div class="admin-pagination-controls" id="admin-user-pagination-buttons"></div>
+        </div>
+    </section>
+</section>
+
+
+<section id="user-form-view" class="product-view" style="display: none !important;">
+    <div class="user-profile-sheet">
+        
+        <div class="user-profile-header">
+            <div class="user-profile-main">
+                <div class="user-avatar-circle" id="user-avatar-text">U</div>
+                <div class="user-meta-info">
+                    <span class="user-meta-tag">HỒ SƠ KHÁCH HÀNG</span>
+                    <h2 id="user-detail-name-display" class="user-profile-title">username</h2>
+                    <div class="user-meta-sub">
+                        Email: <span id="user-email-display">—</span> • Ngày tham gia: <span
+                            id="user-created-date-display">—</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="user-quick-stats">
+                <div class="quick-stat-box">
+                    <span>Số dư Ví Verd</span>
+                    <strong id="user-hero-wallet" style="color: #16a34a;">0 ₫</strong>
+                </div>
+                <div class="quick-stat-box">
+                    <span>Tổng đơn mua</span>
+                    <strong id="user-hero-orders">0 đơn</strong>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="user-profile-tabs">
+            <button type="button" class="user-tab-btn active" data-user-tab="orders">
+                <i class='bx bx-shopping-bag'></i> Lịch sử đơn hàng
+            </button>
+            <button type="button" class="user-tab-btn" data-user-tab="wallet">
+                <i class='bx bx-wallet'></i> Biến động số dư ví
+            </button>
+        </div>
+
+        
+        <section class="user-tab-pane active" data-user-content="orders">
+            <table class="user-detail-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Mã đơn</th>
+                        <th style="width: 25%;">Ngày đặt</th>
+                        <th style="width: 35%;">Tổng tiền</th>
+                        <th style="width: 25%; text-align: center;">Trạng thái đơn</th>
+                    </tr>
+                </thead>
+                <tbody id="user-orders-table-body"></tbody>
+            </table>
+
+            
+            <div class="user-summary-box">
+                <div class="card">
+                    <div class="row">
+                        <span>Tổng số đơn:</span>
+                        <strong id="user-summary-total-orders">0 đơn</strong>
+                    </div>
+                    <div class="row">
+                        <span>Số dư Ví Verd:</span>
+                        <strong id="user-summary-wallet-balance" style="color: #16a34a;">0 ₫</strong>
+                    </div>
+                    <div class="row total">
+                        <span>Tổng chi tiêu:</span>
+                        <strong id="user-summary-total-spent" style="color: #d97706; font-size: 15px;">0 ₫</strong>
+                    </div>
+                    <div class="row" style="margin-top: 4px;">
+                        <span>Trạng thái tài khoản:</span>
+                        <strong id="user-summary-status">—</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+        <section class="user-tab-pane" data-user-content="wallet">
+            <table class="user-detail-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Mã GD</th>
+                        <th style="width: 20%;">Loại GD</th>
+                        <th style="width: 25%;">Số tiền</th>
+                        <th style="width: 25%;">Nội dung</th>
+                        <th style="width: 15%;">Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody id="user-wallet-table-body"></tbody>
+            </table>
+        </section>
+    </div>
+</section>
+
+<div id="admin-user-toast" class="admin-product-toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin_users.js') }}"></script>
+{% endblock %}
