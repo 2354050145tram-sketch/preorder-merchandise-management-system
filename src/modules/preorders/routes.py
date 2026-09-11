@@ -27,10 +27,9 @@ def get_all_preorders():
             active=True,
         )
 
-        return (
-            response_success(
-                {"preorders": [serialize_preorder(preorder) for preorder in preorders]}
-            ),
+        return response_success(
+            {"preorders": [serialize_preorder(preorder) for preorder in preorders]},
+            "Lấy danh sách preorder thành công",
             200,
         )
 

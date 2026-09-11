@@ -855,3 +855,49 @@
     border: 1px solid var(--admin-border);
     object-fit: cover;
 }
+
+.preorder-date-fields {
+    margin-top: 10px;
+    padding: 12px 14px;
+    background: #fffaf2;
+    border: 1px solid #eadcc8;
+    border-radius: 6px;
+}
+
+.preorder-date-fields .product-field-row+.product-field-row {
+    margin-top: 8px;
+}
+
+.preorder-customer-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.preorder-customer-heading h3 {
+    margin: 0;
+}
+
+.preorder-customer-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border: 1px solid #eadcc8;
+    border-radius: 8px;
+    background: #fffaf2;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.preorder-customer-count i {
+    color: var(--admin-gold);
+    font-size: 18px;
+}
+
+.preorder-customer-count strong {
+    color: var(--admin-gold);
+    font-size: 16px;
+}

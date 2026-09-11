@@ -126,16 +126,24 @@ class WalletService:
             raise
 
     @staticmethod
-    def create_withdraw_request(user_id, amount, description=None):
+    def create_withdraw_request(
+        user_id,
+        amount,
+        description=None,
+    ):
         wallet = WalletService.get_wallet_by_user(user_id)
 
         try:
             amount = Decimal(str(amount))
-        except (InvalidOperation, TypeError, ValueError):
+        except (
+            InvalidOperation,
+            TypeError,
+            ValueError,
+        ):
             raise ValueError("Số tiền rút không hợp lệ")
 
-        if not amount.is_finite() or amount <= 0:
-            raise ValueError("Số tiền rút phải lớn hơn 0")
+        if not amount.is_finite() or amount <= Decimal("50000"):
+            raise ValueError("Số tiền rút phải lớn hơn 50.000đ")
 
         if wallet.balance < amount:
             raise ValueError("Số dư ví không đủ")
@@ -147,12 +155,19 @@ class WalletService:
             balance_before=wallet.balance,
             balance_after=wallet.balance,
             transaction_status="CHỜ XỬ LÝ",
-            transaction_code=str(uuid4()),
-            description=description,
+            transaction_code=(f"TEMP-{uuid4().hex}"),
+            description=(description or "Yêu cầu rút Ví Verd"),
         )
 
         try:
             db.session.add(transaction)
+
+            db.session.flush()
+
+            transaction.transaction_code = (
+                f"WAL-" f"{transaction.wallet_transaction_id:09d}"
+            )
+
             db.session.commit()
 
             return transaction
@@ -410,20 +425,25 @@ class WalletService:
             raise
 
     @staticmethod
-    def create_deposit_request(user_id, amount, description=None):
+    def create_deposit_request(
+        user_id,
+        amount,
+        description=None,
+    ):
         wallet = WalletService.get_wallet_by_user(user_id)
 
         try:
             amount = Decimal(str(amount))
-        except (InvalidOperation, TypeError, ValueError):
+
+        except (
+            InvalidOperation,
+            TypeError,
+            ValueError,
+        ):
             raise ValueError("Số tiền nạp không hợp lệ")
 
-        if not amount.is_finite() or amount <= 0:
-            raise ValueError("Số tiền nạp phải lớn hơn 0")
-
-        import time
-
-        trans_code = f"NAP_{user_id}_{int(time.time())}"
+        if not amount.is_finite() or amount <= Decimal("10000"):
+            raise ValueError("Số tiền nạp phải lớn hơn 10.000đ")
 
         transaction = WalletTransaction(
             wallet_id=wallet.wallet_id,
@@ -432,14 +452,23 @@ class WalletService:
             balance_before=wallet.balance,
             balance_after=wallet.balance,
             transaction_status="CHỜ XỬ LÝ",
-            transaction_code=trans_code,
-            description=description or f"Nạp tiền Ví Verd (Mã: {trans_code})",
+            transaction_code=(f"TEMP-{uuid4().hex}"),
+            description=(description or "Nạp tiền vào Ví Verd"),
         )
 
         try:
             db.session.add(transaction)
+
+            db.session.flush()
+
+            transaction.transaction_code = (
+                f"WAL-" f"{transaction.wallet_transaction_id:09d}"
+            )
+
             db.session.commit()
+
             return transaction
+
         except Exception:
             db.session.rollback()
             raise
@@ -517,3 +546,54 @@ class WalletService:
                 }
             )
         return deposits
+
+    @staticmethod
+    def get_all_withdrawals_admin(status=None):
+        stmt = (
+            select(WalletTransaction, User)
+            .join(
+                Wallet,
+                WalletTransaction.wallet_id == Wallet.wallet_id,
+            )
+            .join(
+                User,
+                Wallet.user_id == User.user_id,
+            )
+            .where(WalletTransaction.transaction_type == "RÚT TIỀN")
+        )
+
+        if status:
+            stmt = stmt.where(WalletTransaction.transaction_status == status)
+
+        stmt = stmt.order_by(
+            WalletTransaction.created_at.desc(),
+            WalletTransaction.wallet_transaction_id.desc(),
+        )
+
+        results = db.session.execute(stmt).all()
+
+        withdrawals = []
+
+        for transaction, user in results:
+            withdrawals.append(
+                {
+                    "wallet_transaction_id": (transaction.wallet_transaction_id),
+                    "wallet_id": transaction.wallet_id,
+                    "user_id": user.user_id,
+                    "username": user.username,
+                    "email": user.email,
+                    "amount": float(transaction.amount),
+                    "balance_before": float(transaction.balance_before),
+                    "balance_after": float(transaction.balance_after),
+                    "transaction_status": (transaction.transaction_status),
+                    "transaction_code": (transaction.transaction_code),
+                    "description": transaction.description,
+                    "created_at": (
+                        transaction.created_at.isoformat()
+                        if transaction.created_at
+                        else None
+                    ),
+                }
+            )
+
+        return withdrawals

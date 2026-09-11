@@ -55,7 +55,7 @@ Hệ thống sử dụng hệ quản trị cơ sở dữ liệu MySQL để lưu
 * Dịch vụ xác thực của Google, Facebook, Instagram để hỗ trợ đăng nhập tài khoản.
 
 
-* Cổng thanh toán MoMo để xử lý giao dịch thanh toán.
+* Cổng thanh toán TPBANK để xử lý giao dịch thanh toán.
 
 
 Để vận hành, hệ thống yêu cầu môi trường server có cài đặt Python và các thư viện cần thiết của FLask. Người dùng cần có kết nối Internet để truy cập.
@@ -176,7 +176,7 @@ Giao diện:
 - Trình duyệt hỗ trợ: Google Chrome, Microsoft Edge,...  
 - Dịch vụ tích hợp:
   + Dịch vụ xác thực đăng nhập (OAuth 2.0).
-  + Dịch vụ xử lý thanh toán trực tuyến (MoMo).
+  + Dịch vụ xử lý thanh toán trực tuyến (TPBANK).
 ---
 
 

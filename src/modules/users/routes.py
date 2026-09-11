@@ -1,5 +1,8 @@
 import os
-from flask import Blueprint, request, redirect, url_for, session
+from flask import Blueprint, request, redirect, url_for, session, current_app
+from pathlib import Path
+from uuid import uuid4
+from werkzeug.utils import secure_filename
 from modules.users.services import UserService
 from flask_jwt_extended import (
     create_access_token,
@@ -175,7 +178,7 @@ def facebook_callback():
         session["oauth_refresh_token"] = refresh_token
 
         return redirect("/products")
-    
+
     except ValueError as error:
         return response_error(str(error), 400)
     except Exception:
@@ -334,9 +337,27 @@ def get_admin_user_detail(user_id):
                         else None
                     )
                 )
+
+                items_data = []
+
+                for item in getattr(o, "order_items", []) or []:
+                    product = getattr(item, "product", None)
+
+                    items_data.append(
+                        {
+                            "product_name": (
+                                product.product_name
+                                if product
+                                else f"Sản phẩm #{item.product_id}"
+                            ),
+                            "quantity": item.quantity or 0,
+                        }
+                    )
+
                 orders_data.append(
                     {
                         "order_id": o.order_id,
+                        "order_items": items_data,
                         "order_date": str(o_date).split("T")[0] if o_date else None,
                         "total_amount": float(o.total_amount or 0.0),
                         "order_status": o.order_status,
@@ -373,10 +394,15 @@ def get_admin_user_detail(user_id):
             else 0.0
         )
 
+        profile = getattr(u, "profile", None)
+
         user_detail = {
             "user_id": u.user_id,
             "email": u.email,
             "username": u.username,
+            "full_name": (profile.full_name if profile and profile.full_name else None),
+            "phone_num": (profile.phone_num if profile and profile.phone_num else None),
+            "address": (profile.address if profile and profile.address else None),
             "role_id": u.role_id,
             "active": u.active,
             "created_at": u.created_at.isoformat() if u.created_at else None,
@@ -394,6 +420,86 @@ def get_admin_user_detail(user_id):
         return response_error(str(error), 404)
     except Exception as error:
         return response_error(f"Lỗi: {str(error)}", 500)
+
+
+@user_bp.route(
+    "/me/avatar",
+    methods=["POST"],
+)
+@jwt_required()
+def upload_my_avatar():
+    try:
+        user_id = int(get_jwt_identity())
+
+        UserService.get_user_by_id(
+            user_id,
+            active=True,
+        )
+
+        avatar_file = request.files.get("avatar")
+
+        if not avatar_file or not avatar_file.filename:
+            raise ValueError("Vui lòng chọn ảnh")
+
+        filename = secure_filename(avatar_file.filename)
+
+        extension = Path(filename).suffix.lower()
+
+        allowed_extensions = {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+            ".gif",
+            ".avif",
+        }
+
+        if extension not in allowed_extensions:
+            raise ValueError("Định dạng ảnh không được hỗ trợ")
+
+        if not avatar_file.mimetype.startswith("image/"):
+            raise ValueError("File được chọn không phải hình ảnh")
+
+        avatar_file.stream.seek(0, 2)
+        file_size = avatar_file.stream.tell()
+        avatar_file.stream.seek(0)
+
+        if file_size > 5 * 1024 * 1024:
+            raise ValueError("Ảnh không được lớn hơn 5 MB")
+
+        upload_folder = Path(current_app.static_folder) / "uploads" / "avatars"
+
+        upload_folder.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        stored_filename = f"{uuid4().hex}{extension}"
+
+        avatar_file.save(str(upload_folder / stored_filename))
+
+        image_url = url_for(
+            "static",
+            filename=("uploads/avatars/" f"{stored_filename}"),
+        )
+
+        return response_success(
+            {"image_url": image_url},
+            "Tải ảnh đại diện thành công",
+            201,
+        )
+
+    except ValueError as error:
+        return response_error(
+            str(error),
+            400,
+        )
+
+    except Exception:
+        return response_error(
+            "Có lỗi xảy ra khi đổi ảnh đại diện",
+            500,
+        )
 
 
 @user_bp.route("/admin/<int:user_id>/status", methods=["PUT"])

@@ -315,3 +315,29 @@ def get_admin_deposits():
         return response_error(str(error), 403)
     except Exception as error:
         return response_error(f"Lỗi: {str(error)}", 500)
+
+
+@wallet_bp.route("/admin/withdrawals", methods=["GET"],)
+@jwt_required()
+def get_admin_withdrawals():
+    try:
+        check_admin()
+
+        status = request.args.get("status")
+
+        withdrawals = WalletService.get_all_withdrawals_admin(status=status)
+
+        return response_success(
+            {"withdrawals": withdrawals},
+            "Lấy danh sách yêu cầu rút tiền thành công",
+            200,
+        )
+
+    except PermissionError as error:
+        return response_error(
+            str(error),
+            403,
+        )
+
+    except Exception:
+        return response_error("Có lỗi xảy ra khi lấy danh sách rút tiền", 500)

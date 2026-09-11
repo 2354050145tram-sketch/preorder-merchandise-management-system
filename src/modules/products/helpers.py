@@ -1,20 +1,24 @@
 from datetime import date
-
 from sqlalchemy import select
 from flask_jwt_extended import get_jwt_identity
-
 from config import db
 from modules.products.models import Tag, ProductTag
 from modules.preorders.models import PreOrder
 from modules.users.services import UserService
+from modules.inventories.models import Inventory
 
 
 def serialize_product(product):
-
     stmt = (
         select(Tag)
-        .join(ProductTag, Tag.tag_id == ProductTag.tag_id)
-        .where(ProductTag.product_id == product.product_id, Tag.active.is_(True))
+        .join(
+            ProductTag,
+            Tag.tag_id == ProductTag.tag_id,
+        )
+        .where(
+            ProductTag.product_id == product.product_id,
+            Tag.active.is_(True),
+        )
     )
 
     tags = db.session.scalars(stmt).all()
@@ -30,9 +34,9 @@ def serialize_product(product):
     tags = list(unique_tags.values())
 
     active_preorder = None
+    inventory_quantity = None
 
     if product.status == "PREORDER":
-
         today = date.today()
 
         stmt = select(PreOrder).where(
@@ -44,6 +48,16 @@ def serialize_product(product):
 
         active_preorder = db.session.scalar(stmt)
 
+    elif product.status == "IN_STOCK":
+        inventory = db.session.scalar(
+            select(Inventory).where(
+                Inventory.product_id == product.product_id,
+                Inventory.active.is_(True),
+            )
+        )
+
+        inventory_quantity = int(inventory.quantity) if inventory else 0
+
     return {
         "product_id": product.product_id,
         "product_name": product.product_name,
@@ -52,20 +66,24 @@ def serialize_product(product):
         "image": product.image,
         "status": product.status,
         "active": product.active,
+        "inventory_quantity": (inventory_quantity),
         "preorder_id": (active_preorder.preorder_id if active_preorder else None),
         "preorder_available": (active_preorder is not None),
-        "tags": [{"tag_id": tag.tag_id, "name": tag.name} for tag in tags],
+        "tags": [
+            {
+                "tag_id": tag.tag_id,
+                "name": tag.name,
+            }
+            for tag in tags
+        ],
     }
 
 
 def check_admin():
 
     current_user_id = int(get_jwt_identity())
-
     current_user = UserService.get_user_by_id(current_user_id, active=True)
 
     if current_user.role_id != 0:
-
         raise PermissionError("Không có quyền truy cập")
-
     return current_user

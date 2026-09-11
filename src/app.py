@@ -75,6 +75,10 @@ def order_details_page(order_id):
     )
 
 
+@app.route(
+    "/payment",
+    defaults={"order_id": None},
+)
 @app.route("/payment/<int:order_id>")
 def payment_page(order_id):
     return render_template(

@@ -60,6 +60,25 @@ const avatarInput =
         "profile-avatar"
     );
 
+const avatarFileInput =
+    document.getElementById(
+        "profile-avatar-file"
+    );
+
+const avatarUploadBox =
+    document.getElementById(
+        "profile-avatar-upload"
+    );
+
+const avatarPreview =
+    document.getElementById(
+        "profile-avatar-preview"
+    );
+
+const DEFAULT_AVATAR_URL =
+    "/static/images/logo/user_avatar.png";
+
+let avatarUploading = false;
 
 const sidebarUsername =
     document.getElementById(
@@ -791,12 +810,23 @@ function renderWalletTransactions() {
 
 if (depositWalletBtn) {
     depositWalletBtn.addEventListener("click", async () => {
-        const rawAmount = prompt("Nhập số tiền muốn nạp vào Ví Verd (VNĐ, tối thiểu 10.000đ):");
+        const rawAmount = prompt(
+            "Nhập số tiền muốn nạp vào Ví Verd (phải lớn hơn 10.000 ₫):"
+        );
+
         if (!rawAmount) return;
 
-        const amount = Number(rawAmount.replace(/\D/g, ''));
-        if (isNaN(amount) || amount < 10000) {
-            alert("Số tiền nạp tối thiểu là 10.000đ");
+        const amount = Number(
+            rawAmount.replace(/\D/g, "")
+        );
+
+        if (
+            !Number.isFinite(amount)
+            || amount <= 10000
+        ) {
+            alert(
+                "Số tiền nạp phải lớn hơn 10.000 ₫"
+            );
             return;
         }
 
@@ -821,7 +851,7 @@ if (depositWalletBtn) {
 
             const trans = result.data?.transaction || result.transaction;
 
-            // 👉 CHUYỂN HƯỚNG SANG TRANG THANH TOÁN MOMO
+            // 👉 CHUYỂN HƯỚNG SANG TRANG THANH TOÁN TPBANK
             window.location.href = `/payment?type=deposit&trans_id=${trans.wallet_transaction_id}`;
 
         } catch (error) {
@@ -836,13 +866,25 @@ if (withdrawWalletBtn) {
         "click",
         async () => {
 
-            const amount =
-                prompt(
-                    "Nhập số tiền muốn rút:"
+            const rawAmount = prompt(
+                "Nhập số tiền muốn rút (phải lớn hơn 50.000 ₫):"
+            );
+
+            if (!rawAmount) {
+                return;
+            }
+
+            const amount = Number(
+                rawAmount.replace(/\D/g, "")
+            );
+
+            if (
+                !Number.isFinite(amount)
+                || amount <= 50000
+            ) {
+                alert(
+                    "Số tiền rút phải lớn hơn 50.000 ₫"
                 );
-
-
-            if (!amount) {
                 return;
             }
 
@@ -918,6 +960,195 @@ if (withdrawWalletBtn) {
 
 }
 
+function setAvatarUploadLoading(loading) {
+    avatarUploading = loading;
+
+    avatarUploadBox.classList.toggle(
+        "uploading",
+        loading
+    );
+
+    avatarUploadBox.setAttribute(
+        "aria-busy",
+        String(loading)
+    );
+
+    const icon =
+        avatarUploadBox.querySelector(
+            ".profile-avatar-hover-overlay i"
+        );
+
+    const text =
+        avatarUploadBox.querySelector(
+            ".profile-avatar-hover-overlay span"
+        );
+
+    if (loading) {
+        icon.className =
+            "bx bx-loader-alt bx-spin";
+
+        text.textContent =
+            "Đang tải ảnh...";
+    } else {
+        icon.className =
+            "bx bx-refresh";
+
+        text.textContent =
+            "Bấm để đổi ảnh";
+    }
+}
+
+
+avatarUploadBox.addEventListener(
+    "click",
+    () => {
+        if (
+            avatarUploading ||
+            !avatarUploadBox.classList.contains(
+                "enabled"
+            )
+        ) {
+            return;
+        }
+
+        avatarFileInput.value = "";
+        avatarFileInput.click();
+    }
+);
+
+
+avatarUploadBox.addEventListener(
+    "keydown",
+    event => {
+        if (
+            avatarUploading ||
+            !avatarUploadBox.classList.contains(
+                "enabled"
+            ) ||
+            (
+                event.key !== "Enter" &&
+                event.key !== " "
+            )
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+
+        avatarFileInput.value = "";
+        avatarFileInput.click();
+    }
+);
+
+
+avatarFileInput.addEventListener(
+    "change",
+    async event => {
+        const file =
+            event.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            showToast(
+                "Vui lòng chọn đúng file hình ảnh"
+            );
+
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            showToast(
+                "Ảnh đại diện không được lớn hơn 5 MB"
+            );
+
+            return;
+        }
+
+        const oldAvatar =
+            avatarInput.value ||
+            DEFAULT_AVATAR_URL;
+
+        const token = getToken();
+        const formData = new FormData();
+
+        formData.append(
+            "avatar",
+            file
+        );
+
+        setAvatarUploadLoading(true);
+
+        try {
+            const response = await fetch(
+                "/api/users/me/avatar",
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    },
+                    body: formData
+                }
+            );
+
+            const result =
+                await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message ||
+                    "Không thể tải ảnh đại diện"
+                );
+            }
+
+            const imageUrl =
+                result.data?.image_url ||
+                result.image_url;
+
+            if (!imageUrl) {
+                throw new Error(
+                    "Không nhận được đường dẫn ảnh"
+                );
+            }
+
+            avatarInput.value =
+                imageUrl;
+
+            avatarPreview.src =
+                imageUrl;
+
+            sidebarAvatar.src =
+                imageUrl;
+
+            showToast(
+                "Đổi ảnh đại diện thành công"
+            );
+
+        } catch (error) {
+            avatarInput.value =
+                oldAvatar;
+
+            avatarPreview.src =
+                oldAvatar;
+
+            sidebarAvatar.src =
+                oldAvatar;
+
+            showToast(
+                error.message ||
+                "Không thể đổi ảnh đại diện"
+            );
+
+        } finally {
+            setAvatarUploadLoading(false);
+            avatarFileInput.value = "";
+        }
+    }
+);
+
 function fillProfile(user) {
 
     const profile =
@@ -944,8 +1175,18 @@ function fillProfile(user) {
         profile.address || "";
 
 
+    const avatarUrl =
+        profile.avatar ||
+        DEFAULT_AVATAR_URL;
+
     avatarInput.value =
-        profile.avatar || "";
+        avatarUrl;
+
+    avatarPreview.src =
+        avatarUrl;
+
+    sidebarAvatar.src =
+        avatarUrl;
 
 
     sidebarUsername.textContent =
@@ -959,13 +1200,6 @@ function fillProfile(user) {
     overviewUsername.textContent =
         user.username || "—";
 
-
-    if (profile.avatar) {
-
-        sidebarAvatar.src =
-            profile.avatar;
-
-    }
 
 
     originalProfile = {
@@ -997,8 +1231,15 @@ function setEditMode(enabled) {
     addressInput.disabled =
         !enabled;
 
-    avatarInput.disabled =
-        !enabled;
+    avatarUploadBox.classList.toggle(
+        "enabled",
+        enabled
+    );
+
+    avatarUploadBox.setAttribute(
+        "aria-disabled",
+        String(!enabled)
+    );
 
 
     profileFormActions.style.display =
@@ -1042,6 +1283,14 @@ cancelEditBtn.addEventListener(
             avatarInput.value =
                 originalProfile.avatar;
 
+            avatarPreview.src =
+                originalProfile.avatar ||
+                DEFAULT_AVATAR_URL;
+
+            sidebarAvatar.src =
+                originalProfile.avatar ||
+                DEFAULT_AVATAR_URL;
+
         }
 
 
@@ -1058,6 +1307,14 @@ profileForm.addEventListener(
 
 
         if (!currentUser) {
+            return;
+        }
+
+        if (avatarUploading) {
+            showToast(
+                "Vui lòng chờ ảnh tải xong"
+            );
+
             return;
         }
 

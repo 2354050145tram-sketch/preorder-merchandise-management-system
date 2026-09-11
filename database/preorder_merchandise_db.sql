@@ -147,7 +147,7 @@ CREATE TABLE `payments` (
     `payment_id` INT NOT NULL AUTO_INCREMENT,
     `order_id` INT NOT NULL,
     `amount` DECIMAL(8,2) NOT NULL,
-    `payment_method` ENUM('MOMO') NOT NULL,
+    `payment_method` ENUM('TPBANK') NOT NULL,
     `payment_status` ENUM('ĐANG THANH TOÁN','ĐÃ THANH TOÁN','ĐÃ HỦY','ĐÃ HOÀN TIỀN') NOT NULL,
     `transaction_id` VARCHAR(255) NOT NULL,
     `paid_at` DATETIME(6) NOT NULL,

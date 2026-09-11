@@ -16,20 +16,29 @@ def send_preorder_notification(preorder_id):
 
         data = request.get_json() or {}
 
-        notification = NotificationService.send_preorder_notification(
+        result = NotificationService.send_preorder_notification(
             preorder_id=preorder_id,
             title=data.get("title"),
             message=data.get("message"),
         )
 
-        if notification is None:
+        if result is None:
             return response_success(
                 {}, "Không tìm thấy khách hàng thuộc đợt preorder này", 404
             )
 
         return response_success(
-            {"notification": serialize_notification(notification)},
-            "Gửi thông báo preorder thành công",
+            {
+                "notification": serialize_notification(result["notification"]),
+                "sent_count": result["sent_count"],
+                "failed_count": result["failed_count"],
+                "failed_emails": result["failed_emails"],
+            },
+            (
+                f"Đã gửi thành công "
+                f"{result['sent_count']} email, "
+                f"thất bại {result['failed_count']} email"
+            ),
             200,
         )
 

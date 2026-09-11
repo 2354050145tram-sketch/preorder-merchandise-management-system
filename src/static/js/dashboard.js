@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Formatters & Helpers
     const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
     const formatNumber = (val) => new Intl.NumberFormat('vi-VN').format(val || 0);
     const escapeHTML = (str) => {
@@ -7,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     };
 
-    // 2. Fetch Wrapper có JWT Token
     async function apiFetch(url) {
         const token = localStorage.getItem("token")
             || localStorage.getItem("access_token")
@@ -35,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let revenueChartInstance = null;
     let orderChartInstance = null;
 
-    // 3. Load Summary (5 thẻ trên cùng)
     async function loadSummary() {
         const res = await apiFetch("/api/analytics/dashboard");
         if (res && res.dashboard) {
@@ -48,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 4. Biến động Doanh thu & Dòng tiền (Nhóm theo Tháng / Ngày / Năm)
     async function loadRevenueReport(startDate, endDate, groupMode = "month") {
         let url = "/api/analytics/revenue";
         const params = new URLSearchParams();
@@ -136,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: "top", labels: { boxWidth: 12, font: { family: "Poppins", size: 9.5 } } },
+                    legend: { position: "top", labels: { boxWidth: 12, font: { family: "Saira", size: 9.5 } } },
                     tooltip: {
                         callbacks: {
                             label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}`
@@ -147,12 +143,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     y: {
                         ticks: {
                             callback: (v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v),
-                            font: { family: "Poppins", size: 8.5 }
+                            font: { family: "Saira", size: 8.5 }
                         },
                         grid: { color: "rgba(0,0,0,0.04)" }
                     },
                     x: {
-                        ticks: { font: { family: "Poppins", size: 8.5 }, autoSkip: true, maxTicksLimit: 12 },
+                        ticks: { font: { family: "Saira", size: 8.5 }, autoSkip: true, maxTicksLimit: 12 },
                         grid: { display: false }
                     }
                 }
@@ -160,7 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 5. Biểu đồ Trạng thái Đơn hàng (4 trạng thái)
     async function loadOrderStats() {
         const res = await apiFetch("/api/analytics/orders");
         if (!res || !res.orders) return;
@@ -203,14 +198,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: "bottom", labels: { boxWidth: 10, font: { family: "Poppins", size: 8.5 } } }
+                    legend: { position: "bottom", labels: { boxWidth: 10, font: { family: "Saira", size: 8.5 } } }
                 },
                 cutout: "68%"
             }
         });
     }
 
-    // 6. Top sản phẩm bán chạy
     async function loadBestSellers() {
         const res = await apiFetch("/api/analytics/products/best-selling?limit=10");
         const tbody = document.getElementById("table-best-sellers");
@@ -231,13 +225,11 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join("");
     }
 
-    // 7. Cảnh báo kho hàng (KẾT NỐI VỚI HÀM get_low_stock_products BACKEND)
     async function loadLowStock() {
         const res = await apiFetch("/api/analytics/inventory/low-stock");
         const tbody = document.getElementById("table-low-stock");
         if (!tbody) return;
 
-        // Bắt linh hoạt các dạng key trả về từ backend: res.products hoặc res.low_stock_products hoặc mảng trực tiếp
         const list = res?.products || res?.low_stock_products || (Array.isArray(res) ? res : []);
         
         if (!list || list.length === 0) {
@@ -266,7 +258,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }).join("");
     }
 
-    // 8. Top Khách hàng VIP
     async function loadTopCustomers() {
         const res = await apiFetch("/api/analytics/customers?limit=10");
         const tbody = document.getElementById("table-top-customers");
@@ -290,7 +281,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join("");
     }
 
-    // 9. Xử lý Bộ lọc Ngày / Tháng / Năm
     const filterMode = document.getElementById("filter-mode");
     const wrapMonth = document.getElementById("wrapper-month");
     const wrapDay = document.getElementById("wrapper-day");
@@ -344,7 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
         loadTopCustomers();
     });
 
-    // 10. Khởi chạy khi load trang
     loadSummary();
     applyCurrentFilter();
     loadOrderStats();

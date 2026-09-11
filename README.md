@@ -51,22 +51,3 @@ pip install -r requirements.txt
 
 # Chạy test report
 pytest -q --cov=src --cov-report=term-missing
-
-
-### FRONTEND REACTJS VITE
-# Cài dependencies
-npm install
-
-# Chạy test
-npm run test:run
-npm run test:run -- --reporter=verbose 2>&1 
-npm run test 
-npm run test -- --coverage
-```
-
-### Truy cập hệ thống
-- Frontend: http://localhost:5173/
-- Backend API: https://localhost:8000/
-
-## Demo
-[Demo sản phẩm](./docs/demo.md) 

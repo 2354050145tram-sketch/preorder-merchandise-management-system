@@ -1,10 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&display=swap");
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
+    font-family: "Saira", sans-serif;
     text-decoration: none;
     list-style: none;
 }
@@ -33,7 +33,7 @@ body {
 }
 
 
- 
+
 .header {
     width: 100%;
     height: 92px;
@@ -136,7 +136,7 @@ body {
 }
 
 
- 
+
 .auth-area {
     display: flex;
     align-items: center;
@@ -190,7 +190,7 @@ body {
 }
 
 
- 
+
 .products-page {
     width: 90%;
 
@@ -221,7 +221,7 @@ body {
 }
 
 
- 
+
 .product-tools {
     width: 100%;
 
@@ -371,7 +371,7 @@ body {
 }
 
 
- 
+
 .result-info {
     margin: 20px 2px;
 
@@ -385,7 +385,7 @@ body {
 }
 
 
- 
+
 .product-grid {
     display: grid;
 
@@ -454,7 +454,7 @@ body {
 }
 
 
- 
+
 .product-status {
     position: absolute;
 
@@ -486,7 +486,7 @@ body {
         0 3px 10px rgba(184, 138, 69, 0.25);
 }
 
- 
+
 .product-info {
     padding: 13px;
 }
@@ -564,7 +564,7 @@ body {
     font-size: 18px;
 }
 
- 
+
 .add-cart.disabled,
 .add-cart:disabled {
     background: #c9c5be;
@@ -584,7 +584,7 @@ body {
     transform: none;
 }
 
- 
+
 .filter-overlay {
     position: fixed;
 
@@ -849,7 +849,7 @@ body {
 }
 
 
- 
+
 .state-message {
     padding: 80px 20px;
 
@@ -877,7 +877,7 @@ body {
 }
 
 
- 
+
 footer {
     padding: 45px 6%;
 
@@ -914,7 +914,7 @@ footer>p {
 }
 
 
- 
+
 @media screen and (max-width: 1200px) {
 
     .product-grid {
@@ -1054,7 +1054,7 @@ footer>p {
 
 }
 
- 
+
 .category-select-group {
     width: 100%;
 }
@@ -1089,7 +1089,7 @@ footer>p {
     cursor: not-allowed;
 }
 
- 
+
 .flying-to-cart {
     position: fixed;
     z-index: 9999;
@@ -1144,7 +1144,7 @@ footer>p {
 }
 
 
- 
+
 .cart-toast {
     position: fixed;
 
@@ -1199,7 +1199,7 @@ footer>p {
     font-size: 21px;
 }
 
- 
+
 .add-cart.disabled,
 .add-cart:disabled {
     background: #c7c2b9;
@@ -1219,4 +1219,17 @@ footer>p {
     background: #c7c2b9;
 
     transform: none;
+}
+
+.product-status.out-of-stock {
+    background: #6b7280;
+    color: #ffffff;
+}
+
+.add-cart.disabled,
+.add-cart:disabled {
+    background: #d1d5db;
+    color: #ffffff;
+    cursor: not-allowed;
+    opacity: 0.75;
 }

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&display=swap");
 
 
 * {
@@ -23,7 +23,7 @@
 }
 
 
- 
+
 .profile-page {
     width: min(1350px, 92%);
 
@@ -55,7 +55,7 @@
 }
 
 
- 
+
 .profile-layout {
     display: grid;
 
@@ -68,7 +68,7 @@
 }
 
 
- 
+
 .profile-sidebar {
     background: var(--cream);
 
@@ -162,7 +162,7 @@
 }
 
 
- 
+
 .profile-menu {
     padding: 12px;
 }
@@ -222,7 +222,7 @@
 }
 
 
- 
+
 .profile-tab {
     display: none;
 }
@@ -233,7 +233,7 @@
 }
 
 
- 
+
 .overview-grid {
     display: grid;
 
@@ -327,7 +327,7 @@
 }
 
 
- 
+
 .profile-card {
     background: var(--cream);
 
@@ -376,7 +376,7 @@
 }
 
 
- 
+
 .edit-profile-btn,
 .primary-btn,
 .secondary-btn {
@@ -441,7 +441,7 @@
 }
 
 
- 
+
 .profile-form {
     padding: 25px;
 }
@@ -528,6 +528,73 @@
     cursor: default;
 }
 
+.profile-avatar-uploader {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    overflow: hidden;
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    background: #f8f3eb;
+    cursor: default;
+    outline: none;
+}
+
+.profile-avatar-uploader.enabled {
+    border-color: var(--gold-light);
+    cursor: pointer;
+}
+
+.profile-avatar-uploader>img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: opacity 0.18s ease;
+}
+
+.profile-avatar-hover-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(36, 55, 68, 0.52);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+.profile-avatar-hover-overlay i {
+    font-size: 25px;
+}
+
+.profile-avatar-hover-overlay span {
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.profile-avatar-uploader.enabled:hover .profile-avatar-hover-overlay,
+
+.profile-avatar-uploader.enabled:focus .profile-avatar-hover-overlay,
+
+.profile-avatar-uploader.uploading .profile-avatar-hover-overlay {
+    opacity: 1;
+}
+
+.profile-avatar-uploader.uploading>img {
+    opacity: 0.55;
+}
+
+.avatar-upload-note {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 10px;
+}
 
 .profile-form-actions {
     margin-top: 25px;
@@ -540,13 +607,13 @@
 }
 
 
- 
+
 .order-page-card {
     overflow: visible;
 }
 
 
- 
+
 .order-filter {
     width: 100%;
 
@@ -634,7 +701,7 @@
         600;
 }
 
- 
+
 .shopee-order-list {
     padding:
         15px;
@@ -668,7 +735,7 @@
 }
 
 
- 
+
 .shopee-order-top {
     min-height:
         54px;
@@ -735,7 +802,7 @@
 }
 
 
- 
+
 .shopee-order-status-area {
     display:
         flex;
@@ -835,7 +902,7 @@
 }
 
 
- 
+
 .shopee-order-products {
     padding:
         0 18px;
@@ -983,7 +1050,7 @@
 }
 
 
- 
+
 .order-no-product {
     min-height:
         90px;
@@ -1017,7 +1084,7 @@
 }
 
 
- 
+
 .order-shipping-info {
     padding:
         12px 18px;
@@ -1075,7 +1142,7 @@
 }
 
 
- 
+
 .shopee-order-bottom {
     padding:
         15px 18px;
@@ -1196,7 +1263,7 @@
 }
 
 
- 
+
 @media screen and (max-width: 700px) {
 
     .shopee-order-top {
@@ -1251,7 +1318,7 @@
 
 }
 
- 
+
 .wallet-card {
     min-height: 150px;
 
@@ -1354,7 +1421,7 @@
 }
 
 
- 
+
 .profile-empty {
     min-height: 170px;
 
@@ -1384,7 +1451,7 @@
 }
 
 
- 
+
 .profile-toast {
     position: fixed;
 
@@ -1420,7 +1487,7 @@
     transform: translateY(0);
 }
 
- 
+
 .logout-btn {
     width: 100%;
 
@@ -1439,16 +1506,18 @@
     appearance: none;
     -webkit-appearance: none;
 }
- .logout-btn:hover {
+
+.logout-btn:hover {
     background: #f6ecda;
     color: var(--gold);
 }
- .logout-btn.active {
+
+.logout-btn.active {
     background: transparent;
     color: inherit;
 }
 
- 
+
 @media screen and (max-width: 950px) {
 
     .profile-layout {
@@ -1480,11 +1549,11 @@
 
         text-align: center;
     }
- 
+
     .profile-menu-item[data-tab="wallet"] {
         grid-column: 2;
     }
- 
+
     .logout-btn {
         grid-column: 3;
 
@@ -1517,7 +1586,7 @@
 
 }
 
- 
+
 .wallet-transaction {
     padding: 18px 22px;
 
@@ -1662,7 +1731,7 @@
 
 }
 
- 
+
 .preorder-order-filter {
     width: 100%;
 
@@ -1947,7 +2016,7 @@
     justify-content: flex-end;
 }
 
- 
+
 @media screen and (max-width: 650px) {
 
     .preorder-order-filter {

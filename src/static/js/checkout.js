@@ -696,10 +696,10 @@ placeOrderBtn.addEventListener(
 
 
             if (
-                paymentMethod === "MOMO"
+                paymentMethod === "TPBANK"
             ) {
                 const transactionId =
-                    "MOMO_TEST_"
+                    "TPBANK_TEST_"
                     +
                     orderId
                     +
@@ -725,7 +725,7 @@ placeOrderBtn.addEventListener(
                             body:
                                 JSON.stringify({
                                     payment_method:
-                                        "MOMO",
+                                        "TPBANK",
 
                                     payment_type:
                                         paymentType,
