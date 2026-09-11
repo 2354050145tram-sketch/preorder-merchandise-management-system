@@ -217,33 +217,46 @@
             </div>
 
             <div class="payment-method-tabs">
-                <button type="button" class="pay-tab-btn active" id="tab-btn-momo" onclick="switchPayMethod('MOMO')">
-                    <i class='bx bx-qr-scan'></i> MoMo (QR)
+                <button type="button" class="pay-tab-btn active" id="tab-btn-tpbank"
+                    onclick="switchPayMethod('TPBANK')">
+                    <i class='bx bx-qr-scan'></i>
+                    Chuyển khoản TPBank
                 </button>
-                <button type="button" class="pay-tab-btn" id="tab-btn-verd" onclick="switchPayMethod('VI_VERD')">
-                    <i class='bx bx-wallet'></i> Ví Verd
+
+                <button type="button" class="pay-tab-btn" id="tab-btn-verd" onclick="switchPayMethod('VÍ VERD')">
+                    <i class='bx bx-wallet'></i>
+                    Ví Verd
                 </button>
             </div>
 
-            <div id="section-momo" class="payment-card-body">
+            <div id="section-tpbank" class="payment-card-body">
                 <div class="qr-box-inner">
-                    <img id="momo-qr-img" src="" alt="Mã QR MoMo">
-                    <div style="font-size: 13px; color: #6b7280; margin-top: 8px;">Mở <strong>App MoMo</strong> hoặc
-                        Ngân hàng để quét mã</div>
+                    <img id="tpbank-qr-img" src="" alt="Mã QR chuyển khoản TPBank">
+
+                    <div style="font-size: 13px; color: #6b7280; margin-top: 8px;">
+                        Mở ứng dụng TPBank hoặc ứng dụng ngân hàng
+                        để quét mã VietQR
+                    </div>
                 </div>
 
                 <div class="info-group-box">
                     <div class="info-row-item">
                         <span>Mã đơn hàng:</span>
-                        <strong id="momo-order-id">#—</strong>
+                        <strong id="tpbank-order-id">#—</strong>
                     </div>
+
                     <div class="info-row-item">
                         <span>Số tiền cần thanh toán:</span>
-                        <strong id="momo-pay-amount" style="color: #d97706; font-size: 16px;">0 ₫</strong>
+                        <strong id="tpbank-pay-amount" style="color: #d97706; font-size: 16px;">
+                            0 ₫
+                        </strong>
                     </div>
+
                     <div class="info-row-item">
                         <span>Nội dung chuyển khoản:</span>
-                        <strong id="momo-pay-memo" style="color: #dc2626;">—</strong>
+                        <strong id="tpbank-pay-memo" style="color: #dc2626;">
+                            —
+                        </strong>
                     </div>
                 </div>
             </div>

@@ -108,7 +108,12 @@ class NotificationService:
                     }
                 )
 
-        return notification
+        return {
+            "notification": notification,
+            "sent_count": sent_count,
+            "failed_count": len(failed_emails),
+            "failed_emails": failed_emails,
+        }
 
     @staticmethod
     def get_user_notifications(user_id):

@@ -126,17 +126,30 @@ Quản lý sản phẩm - Verdia Admin
                                 <option value="PREORDER">Pre-order</option>
                             </select>
                         </div>
+
+                        <div id="preorder-date-fields" class="preorder-date-fields" style="display: none;">
+                            <div class="product-field-row">
+                                <label for="preorder-start-date">Ngày mở Pre-order</label>
+                                <input type="date" id="preorder-start-date">
+                            </div>
+
+                            <div class="product-field-row">
+                                <label for="preorder-end-date">Ngày kết thúc</label>
+                                <input type="date" id="preorder-end-date">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="product-image-column">
-                    <input type="file" id="product-file-input" accept="image/*" style="display: none;">
+                    <input type="file" id="product-file-input" accept=".jpg,.jpeg,.png,.webp,.gif,.avif"
+                        style="display: none;">
 
-                    <div id="product-image-preview-box" class="product-image-uploader"
-                        title="Bấm để chọn ảnh từ máy tính">
-                        <i class='bx bx-cloud-upload'></i>
+                    <label for="product-file-input" id="product-image-preview-box" class="product-image-uploader"
+                        tabindex="0" role="button" title="Bấm để chọn ảnh từ máy tính">
+                        <i class="bx bx-cloud-upload"></i>
                         <span>Bấm để tải ảnh lên</span>
-                    </div>
+                    </label>
                 </div>
             </div>
 
@@ -260,7 +273,15 @@ Quản lý sản phẩm - Verdia Admin
 
             <section class="product-tab-content" data-product-content="preorder-customers">
                 <div class="product-form-section" style="padding-bottom: 20px;">
-                    <h3>Danh sách khách hàng đặt trước sản phẩm này</h3>
+                    <div class="preorder-customer-heading">
+                        <h3>Danh sách khách hàng đặt trước sản phẩm này</h3>
+                        <div class="preorder-customer-count">
+                            <i class='bx bx-package'></i>
+                            Tổng cần đặt:
+                            <strong id="preorder-total-quantity">0</strong>
+                            sản phẩm
+                        </div>
+                    </div>
                     <table class="admin-product-table" style="margin-top: 10px;">
                         <thead>
                             <tr>

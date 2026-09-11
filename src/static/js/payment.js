@@ -1,10 +1,11 @@
-const MOMO_CONFIG = {
-    phone: "0966053514",
-    name: "NGUYEN THI NGOC TRAM"
+const BANK_CONFIG = {
+    bankBin: "970423",
+    accountNumber: "00000880145",
+    accountName: "NGUYEN THI NGOC TRAM"
 };
 
 const urlParams = new URLSearchParams(window.location.search);
-const pageType = urlParams.get("type"); // "deposit" hoặc null (đơn hàng)
+const pageType = urlParams.get("type");
 const depositTransId = urlParams.get("trans_id");
 
 function getOrderIdFromUrl() {
@@ -31,7 +32,7 @@ function formatCurrency(val) {
 }
 
 const orderId = getOrderIdFromUrl();
-let currentPaymentMethod = "MOMO";
+let currentPaymentMethod = "TPBANK";
 let currentSummary = null;
 let depositData = null;
 let isPaidSuccess = false;
@@ -41,7 +42,6 @@ document.addEventListener("DOMContentLoaded", initPaymentPage);
 async function initPaymentPage() {
     const token = getUserToken();
 
-    // 1. TRƯỜNG HỢP NẠP TIỀN VÍ VERD (CHỈ HIỆN MOMO)
     if (pageType === "deposit" && depositTransId) {
         try {
             const res = await fetch(`/api/wallets/deposit/${depositTransId}`, {
@@ -55,22 +55,30 @@ async function initPaymentPage() {
             const amount = Number(depositData.amount || 0);
             const memo = depositData.transaction_code || `NAP ${depositTransId}`;
 
-            // Ẩn tab Ví Verd, đổi tiêu đề
             document.querySelector(".payment-card-header h2").innerHTML = "<i class='bx bx-wallet'></i> Nạp tiền vào Ví Verd";
             const tabVerd = document.getElementById("tab-btn-verd");
             if (tabVerd) tabVerd.style.display = "none";
 
-            // Điền thông tin MoMo
-            document.getElementById("momo-order-id").textContent = `#${depositData.wallet_transaction_id}`;
-            document.getElementById("momo-pay-amount").textContent = formatCurrency(amount);
-            document.getElementById("momo-pay-memo").textContent = memo;
+            document.getElementById("tpbank-order-id").textContent = `#${depositData.wallet_transaction_id}`;
+            document.getElementById("tpbank-pay-amount").textContent = formatCurrency(amount);
+            document.getElementById("tpbank-pay-memo").textContent = memo;
 
-            const qrUrl = `https://api.vietqr.io/image/970415-${MOMO_CONFIG.phone}-compact2.jpg?amount=${Math.round(amount)}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(MOMO_CONFIG.name)}`;
-            const qrImg = document.getElementById("momo-qr-img");
+            const qrUrl = (
+                `https://api.vietqr.io/image/`
+                + `${BANK_CONFIG.bankBin}-`
+                + `${BANK_CONFIG.accountNumber}`
+                + `-compact2.jpg`
+                + `?amount=${Math.round(amount)}`
+                + `&addInfo=${encodeURIComponent(memo)}`
+                + `&accountName=${encodeURIComponent(
+                    BANK_CONFIG.accountName
+                )}`
+            );
+            const qrImg = document.getElementById("tpbank-qr-img");
             if (qrImg) qrImg.src = qrUrl;
 
             document.getElementById("btn-cancel-pay").textContent = "Hủy yêu cầu nạp";
-            switchPayMethod("MOMO");
+            switchPayMethod("TPBANK");
         } catch (e) {
             alert(e.message || "Lỗi tải yêu cầu nạp tiền");
             window.location.href = "/profile";
@@ -78,7 +86,6 @@ async function initPaymentPage() {
         return;
     }
 
-    // 2. TRƯỜNG HỢP THANH TOÁN ĐƠN HÀNG
     if (!orderId) {
         alert("Không tìm thấy mã đơn hàng hợp lệ!");
         return;
@@ -96,16 +103,24 @@ async function initPaymentPage() {
             const walletBalance = Number(currentSummary.wallet_balance || 0);
             const memo = `DONHANG ${orderId}`;
 
-            // MoMo
-            document.getElementById("momo-order-id").textContent = `#${orderId}`;
-            document.getElementById("momo-pay-amount").textContent = formatCurrency(totalAmount);
-            document.getElementById("momo-pay-memo").textContent = memo;
+            document.getElementById("tpbank-order-id").textContent = `#${orderId}`;
+            document.getElementById("tpbank-pay-amount").textContent = formatCurrency(totalAmount);
+            document.getElementById("tpbank-pay-memo").textContent = memo;
 
-            const qrUrl = `https://api.vietqr.io/image/970415-${MOMO_CONFIG.phone}-compact2.jpg?amount=${Math.round(totalAmount)}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(MOMO_CONFIG.name)}`;
-            const qrImg = document.getElementById("momo-qr-img");
+            const qrUrl = (
+                `https://api.vietqr.io/image/`
+                + `${BANK_CONFIG.bankBin}-`
+                + `${BANK_CONFIG.accountNumber}`
+                + `-compact2.jpg`
+                + `?amount=${Math.round(totalAmount)}`
+                + `&addInfo=${encodeURIComponent(memo)}`
+                + `&accountName=${encodeURIComponent(
+                    BANK_CONFIG.accountName
+                )}`
+            );
+            const qrImg = document.getElementById("tpbank-qr-img");
             if (qrImg) qrImg.src = qrUrl;
 
-            // Ví Verd
             document.getElementById("verd-order-id").textContent = `#${orderId}`;
             document.getElementById("verd-pay-amount").textContent = formatCurrency(totalAmount);
             document.getElementById("verd-wallet-balance").textContent = formatCurrency(walletBalance);
@@ -121,34 +136,76 @@ async function initPaymentPage() {
             }
 
             switchPayMethod(currentPaymentMethod);
+
+        } else {
+            alert(
+                result.message
+                || "Không tải được thông tin thanh toán"
+            );
         }
+
     } catch (e) {
-        console.error("Lỗi:", e);
+        alert(
+            e.message
+            || "Có lỗi khi tải thông tin thanh toán"
+        );
     }
 }
 
 function switchPayMethod(method) {
     currentPaymentMethod = method;
-    const isMomo = method === "MOMO";
 
-    const tabMomo = document.getElementById("tab-btn-momo");
-    const tabVerd = document.getElementById("tab-btn-verd");
-    if (tabMomo) tabMomo.classList.toggle("active", isMomo);
-    if (tabVerd) tabVerd.classList.toggle("active", !isMomo);
+    const isTpbank = method === "TPBANK";
 
-    const secMomo = document.getElementById("section-momo");
-    const secVerd = document.getElementById("section-verd");
-    if (secMomo) secMomo.style.display = isMomo ? "block" : "none";
-    if (secVerd) secVerd.style.display = isMomo ? "none" : "block";
+    const tabTpbank =
+        document.getElementById("tab-btn-tpbank");
 
-    const submitBtn = document.getElementById("btn-confirm-payment");
-    if (submitBtn) {
-        submitBtn.textContent = isMomo ? "Tôi đã chuyển khoản xong" : "Thanh toán bằng Ví Verd";
+    const tabVerd =
+        document.getElementById("tab-btn-verd");
+
+    if (tabTpbank) {
+        tabTpbank.classList.toggle(
+            "active",
+            isTpbank
+        );
+    }
+
+    if (tabVerd) {
+        tabVerd.classList.toggle(
+            "active",
+            !isTpbank
+        );
+    }
+
+    const sectionTpbank =
+        document.getElementById("section-tpbank");
+
+    const sectionVerd =
+        document.getElementById("section-verd");
+
+    if (sectionTpbank) {
+        sectionTpbank.style.display =
+            isTpbank ? "block" : "none";
+    }
+
+    if (sectionVerd) {
+        sectionVerd.style.display =
+            isTpbank ? "none" : "block";
+    }
+
+    const submitButton =
+        document.getElementById(
+            "btn-confirm-payment"
+        );
+
+    if (submitButton) {
+        submitButton.textContent = isTpbank
+            ? "Tôi đã chuyển khoản xong"
+            : "Thanh toán bằng Ví Verd";
     }
 }
 
 async function handlePaymentSubmit() {
-    // 1. Khi nạp tiền ví
     if (pageType === "deposit" && depositTransId) {
         isPaidSuccess = true;
         document.getElementById("payment-view").style.display = "none";
@@ -158,23 +215,42 @@ async function handlePaymentSubmit() {
         return;
     }
 
-    // 2. Khi thanh toán đơn hàng
     if (!currentSummary) return;
     const totalAmount = currentSummary.remaining_amount > 0 ? currentSummary.remaining_amount : currentSummary.total_amount;
     const walletBalance = Number(currentSummary.wallet_balance || 0);
 
-    if (currentPaymentMethod === "MOMO") {
-        await executePaymentAPI("MOMO");
-    } else if (currentPaymentMethod === "VI_VERD") {
+    if (currentPaymentMethod === "TPBANK") {
+        await executePaymentAPI("TPBANK");
+
+    } else if (
+        currentPaymentMethod === "VÍ VERD"
+    ) {
         if (walletBalance < totalAmount) {
-            document.getElementById("wallet-modal-desc").innerHTML = `
-                Số dư ví hiện tại: <strong>${formatCurrency(walletBalance)}</strong>.<br>
-                Bạn còn thiếu <strong style="color: #dc2626;">${formatCurrency(totalAmount - walletBalance)}</strong> để thanh toán.
-            `;
-            document.getElementById("wallet-insufficient-modal").style.display = "flex";
+            document.getElementById(
+                "wallet-modal-desc"
+            ).innerHTML = `
+            Số dư ví hiện tại:
+            <strong>
+                ${formatCurrency(walletBalance)}
+            </strong>.<br>
+
+            Bạn còn thiếu
+            <strong style="color: #dc2626;">
+                ${formatCurrency(
+                totalAmount - walletBalance
+            )}
+            </strong>
+            để thanh toán.
+        `;
+
+            document.getElementById(
+                "wallet-insufficient-modal"
+            ).style.display = "flex";
+
             return;
         }
-        await executePaymentAPI("VI_VERD");
+
+        await executePaymentAPI("VÍ VERD");
     }
 }
 
@@ -211,7 +287,6 @@ async function executePaymentAPI(method) {
     }
 }
 
-// Khách bấm Hủy / Quay lại
 document.getElementById("btn-cancel-pay")?.addEventListener("click", async (e) => {
     e.preventDefault();
     if (pageType === "deposit" && depositTransId) {
@@ -233,8 +308,11 @@ document.getElementById("btn-cancel-pay")?.addEventListener("click", async (e) =
 });
 
 function closeWalletModal() {
-    document.getElementById("wallet-insufficient-modal").style.display = "none";
-    switchPayMethod("MOMO");
+    document.getElementById(
+        "wallet-insufficient-modal"
+    ).style.display = "none";
+
+    switchPayMethod("TPBANK");
 }
 
 function goToProfileWallet() {

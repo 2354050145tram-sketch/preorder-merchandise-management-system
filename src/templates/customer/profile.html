@@ -28,7 +28,7 @@
 
                 <div class="profile-avatar">
 
-                    <img id="sidebar-avatar" src="{{ url_for('static', filename='images/default/default_avatar.png') }}"
+                    <img id="sidebar-avatar" src="{{ url_for('static', filename='images/logo/user_avatar.png') }}"
                         alt="Avatar">
 
                 </div>
@@ -290,10 +290,31 @@
                             <div class="form-group full-width">
 
                                 <label>
-                                    Avatar
+                                    Ảnh đại diện
                                 </label>
 
-                                <input type="text" id="profile-avatar" placeholder="URL ảnh đại diện" disabled>
+                                <input type="hidden" id="profile-avatar">
+
+                                <input type="file" id="profile-avatar-file" accept=".jpg,.jpeg,.png,.webp,.gif,.avif"
+                                    hidden>
+
+                                <div id="profile-avatar-upload" class="profile-avatar-uploader" tabindex="0"
+                                    role="button" aria-disabled="true" title="Bấm để chọn ảnh từ máy tính">
+
+                                    <img id="profile-avatar-preview"
+                                        src="{{ url_for('static', filename='images/logo/user_avatar.png') }}"
+                                        alt="Ảnh đại diện">
+
+                                    <div class="profile-avatar-hover-overlay">
+                                        <i class="bx bx-refresh"></i>
+                                        <span>Bấm để đổi ảnh</span>
+                                    </div>
+
+                                </div>
+
+                                <span class="avatar-upload-note">
+                                    JPG, PNG, WEBP, GIF hoặc AVIF — tối đa 5 MB
+                                </span>
 
                             </div>
 

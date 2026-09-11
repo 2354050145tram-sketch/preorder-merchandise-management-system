@@ -171,7 +171,7 @@ function renderUserPaginatedTable() {
         if (sortType === "wallet_asc") return (walletA - walletB) || (idB - idA);
         if (sortType === "orders_desc") return (ordersCountB - ordersCountA) || (idB - idA);
         if (sortType === "orders_asc") return (ordersCountA - ordersCountB) || (idB - idA);
-        
+
         return idB - idA;
     });
 
@@ -292,11 +292,22 @@ async function openUserDetail(userId) {
         document.getElementById("user-breadcrumb-current").textContent = user.username;
         document.getElementById("user-form-mode").textContent = `Người dùng #${user.user_id}`;
 
-        const initial = (user.username || "U").charAt(0).toUpperCase();
+        const initial = (user.full_name|| user.username|| "U").charAt(0).toUpperCase();
         document.getElementById("user-avatar-text").textContent = initial;
 
         document.getElementById("user-detail-name-display").textContent = user.username;
         document.getElementById("user-email-display").textContent = user.email || "—";
+        document.getElementById(
+            "user-full-name-display"
+        ).textContent = user.full_name || "Chưa cập nhật";
+
+        document.getElementById(
+            "user-phone-display"
+        ).textContent = user.phone_num || "Chưa cập nhật";
+
+        document.getElementById(
+            "user-address-display"
+        ).textContent = user.address || "Chưa cập nhật";
         const rawDate = user.created_at || "";
         document.getElementById("user-created-date-display").textContent = rawDate ? String(rawDate).split('T')[0] : "—";
 
@@ -334,48 +345,176 @@ function renderUserHeaderActions(user) {
 }
 
 function renderUserOrders(orders) {
-    const tbody = document.getElementById("user-orders-table-body");
+    const tbody = document.getElementById(
+        "user-orders-table-body"
+    );
+
     if (!tbody) return;
 
     let totalSpent = 0;
+
     if (!orders.length) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--admin-muted, #6b7280); padding: 20px;">Chưa có đơn hàng nào.</td></tr>`;
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6"
+                    style="
+                        text-align: center;
+                        color: var(--admin-muted, #6b7280);
+                        padding: 20px;
+                    ">
+                    Chưa có đơn hàng nào.
+                </td>
+            </tr>
+        `;
     } else {
-        tbody.innerHTML = orders.map(o => {
-            const amt = Number(o.total_amount || 0);
-            if (o.order_status !== 'ĐÃ HỦY') totalSpent += amt;
+        tbody.innerHTML = orders.map(order => {
+            const amount = Number(
+                order.total_amount || 0
+            );
+
+            if (order.order_status !== "ĐÃ HỦY") {
+                totalSpent += amount;
+            }
 
             let statusClass = "customer-role";
-            if (o.order_status === "HOÀN THÀNH" || o.order_status === "ĐÃ XÁC NHẬN") statusClass = "active-status";
-            else if (o.order_status === "ĐÃ HỦY") statusClass = "locked-status";
-            else if (o.order_status === "CHỜ XÁC NHẬN") statusClass = "admin-role";
+
+            if (
+                order.order_status === "HOÀN THÀNH"
+                || order.order_status === "ĐÃ XÁC NHẬN"
+            ) {
+                statusClass = "active-status";
+            } else if (
+                order.order_status === "ĐÃ HỦY"
+            ) {
+                statusClass = "locked-status";
+            } else if (
+                order.order_status === "CHỜ XÁC NHẬN"
+            ) {
+                statusClass = "admin-role";
+            }
+
+            const items = order.order_items || [];
+
+            const productNames = items.length
+                ? items.map(item => `
+                    <div class="user-order-product-line">
+                        ${escapeUserHTML(
+                    item.product_name || "Sản phẩm"
+                )}
+                    </div>
+                `).join("")
+                : `<span class="user-order-empty">—</span>`;
+
+            const quantities = items.length
+                ? items.map(item => `
+                    <div class="user-order-product-line">
+                        ${Number(item.quantity || 0)}
+                    </div>
+                `).join("")
+                : `<span class="user-order-empty">—</span>`;
+
+            const orderDate = (
+                order.order_date
+                || (
+                    order.created_at
+                        ? String(order.created_at).split("T")[0]
+                        : "—"
+                )
+            );
 
             return `
                 <tr>
-                    <td><strong style="color: #111827;">#${o.order_id}</strong></td>
-                    <td style="color: #374151; font-size: 13px;">${o.order_date || (o.created_at ? String(o.created_at).split('T')[0] : '—')}</td>
-                    <td style="font-weight: 700; color: #d97706;">${formatUserPrice(amt)}</td>
+                    <td>
+                        <strong style="color: #111827;">
+                            #${order.order_id}
+                        </strong>
+                    </td>
+
+                    <td style="color: #374151;">
+                        ${escapeUserHTML(orderDate)}
+                    </td>
+
+                    <td class="user-order-products">
+                        ${productNames}
+                    </td>
+
+                    <td
+                        class="user-order-quantities"
+                        style="text-align: center;"
+                    >
+                        ${quantities}
+                    </td>
+
+                    <td
+                        style="
+                            font-weight: 700;
+                            color: #d97706;
+                        "
+                    >
+                        ${formatUserPrice(amount)}
+                    </td>
+
                     <td style="text-align: center;">
-                        <span class="admin-product-status ${statusClass}">${escapeUserHTML(o.order_status)}</span>
+                        <span class="
+                            admin-product-status
+                            ${statusClass}
+                        ">
+                            ${escapeUserHTML(
+                order.order_status || "—"
+            )}
+                        </span>
                     </td>
                 </tr>
             `;
         }).join("");
     }
 
-    const totalOrdersEl = document.getElementById("user-summary-total-orders");
-    const totalSpentEl = document.getElementById("user-summary-total-spent");
-    const walletBalEl = document.getElementById("user-summary-wallet-balance");
-    const statusEl = document.getElementById("user-summary-status");
+    const totalOrdersEl = document.getElementById(
+        "user-summary-total-orders"
+    );
+    const totalSpentEl = document.getElementById(
+        "user-summary-total-spent"
+    );
+    const walletBalEl = document.getElementById(
+        "user-summary-wallet-balance"
+    );
+    const statusEl = document.getElementById(
+        "user-summary-status"
+    );
 
-    if (totalOrdersEl) totalOrdersEl.textContent = `${orders.length} đơn`;
-    if (totalSpentEl) totalSpentEl.textContent = formatUserPrice(totalSpent);
-    if (walletBalEl) walletBalEl.textContent = formatUserPrice(currentViewingUser?.wallet_balance || 0);
+    if (totalOrdersEl) {
+        totalOrdersEl.textContent = `${orders.length} đơn`;
+    }
+
+    if (totalSpentEl) {
+        totalSpentEl.textContent = formatUserPrice(
+            totalSpent
+        );
+    }
+
+    if (walletBalEl) {
+        walletBalEl.textContent = formatUserPrice(
+            currentViewingUser?.wallet_balance || 0
+        );
+    }
 
     if (statusEl) {
-        const isActive = currentViewingUser?.active !== false && currentViewingUser?.active !== 0;
-        statusEl.textContent = isActive ? "Đang hoạt động" : "Bị khóa";
-        statusEl.style.color = isActive ? "#16a34a" : "#dc2626";
+        const isActive = (
+            currentViewingUser?.active !== false
+            && currentViewingUser?.active !== 0
+        );
+
+        statusEl.textContent = (
+            isActive
+                ? "Đang hoạt động"
+                : "Bị khóa"
+        );
+
+        statusEl.style.color = (
+            isActive
+                ? "#16a34a"
+                : "#dc2626"
+        );
     }
 }
 

@@ -232,7 +232,7 @@ class OrderService:
                 auto_payment = Payment(
                     order_id=order_id,
                     amount=summary["remaining_amount"],
-                    payment_method="MOMO",
+                    payment_method="TPBANK",
                     payment_type="THANH TOÁN FULL",
                     payment_status="ĐANG THANH TOÁN",
                     transaction_id=f"ADMIN_CONFIRM_{order_id}_{int(time.time())}",
@@ -595,7 +595,7 @@ class PaymentService:
         if order.order_status == "HOÀN THÀNH":
             raise ValueError("Đơn hàng đã hoàn thành")
 
-        if payment_method not in ["MOMO", "VÍ VERD"]:
+        if payment_method not in ["TPBANK", "VÍ VERD"]:
             raise ValueError("Phương thức thanh toán không hợp lệ")
 
         if payment_method in ["VÍ VERD"]:
@@ -616,7 +616,7 @@ class PaymentService:
         transaction_id = (
             str(transaction_id).strip()
             if transaction_id
-            else f"MOMO_{order_id}_{int(time.time())}"
+            else f"TPBANK_{order_id}_{int(time.time())}"
         )
 
         existing_transaction = db.session.scalar(
@@ -628,7 +628,7 @@ class PaymentService:
         payment = Payment(
             order_id=order_id,
             amount=amount,
-            payment_method="MOMO",
+            payment_method="TPBANK",
             payment_type=payment_type,
             payment_status="ĐANG THANH TOÁN",
             transaction_id=transaction_id,

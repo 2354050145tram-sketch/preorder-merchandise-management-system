@@ -96,7 +96,7 @@ Quản lý người dùng - Verdia Admin
 
 <section id="user-form-view" class="product-view" style="display: none !important;">
     <div class="user-profile-sheet">
-        
+
         <div class="user-profile-header">
             <div class="user-profile-main">
                 <div class="user-avatar-circle" id="user-avatar-text">U</div>
@@ -110,7 +110,7 @@ Quản lý người dùng - Verdia Admin
                 </div>
             </div>
 
-            
+
             <div class="user-quick-stats">
                 <div class="quick-stat-box">
                     <span>Số dư Ví Verd</span>
@@ -123,7 +123,41 @@ Quản lý người dùng - Verdia Admin
             </div>
         </div>
 
-        
+        <div class="user-contact-card">
+            <div class="user-contact-item">
+                <div class="user-contact-icon">
+                    <i class='bx bx-id-card'></i>
+                </div>
+
+                <div class="user-contact-content">
+                    <span>Họ và tên</span>
+                    <strong id="user-full-name-display">—</strong>
+                </div>
+            </div>
+
+            <div class="user-contact-item">
+                <div class="user-contact-icon">
+                    <i class='bx bx-phone'></i>
+                </div>
+
+                <div class="user-contact-content">
+                    <span>Số điện thoại</span>
+                    <strong id="user-phone-display">—</strong>
+                </div>
+            </div>
+
+            <div class="user-contact-item user-address-item">
+                <div class="user-contact-icon">
+                    <i class='bx bx-map'></i>
+                </div>
+
+                <div class="user-contact-content">
+                    <span>Địa chỉ</span>
+                    <strong id="user-address-display">—</strong>
+                </div>
+            </div>
+        </div>
+
         <div class="user-profile-tabs">
             <button type="button" class="user-tab-btn active" data-user-tab="orders">
                 <i class='bx bx-shopping-bag'></i> Lịch sử đơn hàng
@@ -133,21 +167,27 @@ Quản lý người dùng - Verdia Admin
             </button>
         </div>
 
-        
+
         <section class="user-tab-pane active" data-user-content="orders">
             <table class="user-detail-table">
                 <thead>
                     <tr>
-                        <th style="width: 15%;">Mã đơn</th>
-                        <th style="width: 25%;">Ngày đặt</th>
-                        <th style="width: 35%;">Tổng tiền</th>
-                        <th style="width: 25%; text-align: center;">Trạng thái đơn</th>
+                        <th style="width: 10%;">Mã đơn</th>
+                        <th style="width: 14%;">Ngày đặt hàng</th>
+                        <th style="width: 28%;">Tên sản phẩm</th>
+                        <th style="width: 10%; text-align: center;">
+                            Số lượng
+                        </th>
+                        <th style="width: 18%;">Tổng tiền</th>
+                        <th style="width: 20%; text-align: center;">
+                            Trạng thái đơn
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="user-orders-table-body"></tbody>
             </table>
 
-            
+
             <div class="user-summary-box">
                 <div class="card">
                     <div class="row">
@@ -170,7 +210,7 @@ Quản lý người dùng - Verdia Admin
             </div>
         </section>
 
-        
+
         <section class="user-tab-pane" data-user-content="wallet">
             <table class="user-detail-table">
                 <thead>

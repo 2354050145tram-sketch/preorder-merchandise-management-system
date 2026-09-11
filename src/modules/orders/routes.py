@@ -277,7 +277,7 @@ def create_payment(order_id):
         payment_type = data.get("payment_type")
         transaction_id = data.get("transaction_id")
 
-        if payment_method not in ["MOMO", "VÍ VERD"]:
+        if payment_method not in ["TPBANK", "VÍ VERD"]:
             raise ValueError("Phương thức thanh toán không hợp lệ")
 
         payment = PaymentService.create_payment(
@@ -310,10 +310,9 @@ def get_payments_by_order(order_id):
 
         payments = PaymentService.get_payments_by_order(order_id)
 
-        return (
-            response_success(
-                {"payments": [serialize_payment(payment) for payment in payments]}
-            ),
+        return response_success(
+            {"payments": [serialize_payment(payment) for payment in payments]},
+            "Lấy danh sách thanh toán thành công",
             200,
         )
 
@@ -518,9 +517,7 @@ def get_preorder_customers_by_product(product_id):
         for r in results:
             item_price = float(r.price)
             item_quantity = r.quantity
-            item_subtotal = (
-                item_price * item_quantity
-            ) 
+            item_subtotal = item_price * item_quantity
 
             customers.append(
                 {

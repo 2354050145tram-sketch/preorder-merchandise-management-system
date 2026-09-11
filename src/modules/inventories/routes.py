@@ -38,11 +38,11 @@ def get_all_inventory():
         )
 
         return response_success(
-                {
-                    "inventories": [
-                        serialize_inventory(inventory) for inventory in inventories
-                    ]
-                },
+            {
+                "inventories": [
+                    serialize_inventory(inventory) for inventory in inventories
+                ]
+            },
             200,
         )
 
@@ -174,7 +174,11 @@ def get_inventory_status(product_id):
 
         status = InventoryService.get_inventory_status(product_id)
 
-        return response_success({"product_id": product_id, "status": status}), 200
+        return response_success(
+            {"product_id": product_id, "status": status},
+            "Lấy trạng thái tồn kho thành công",
+            200,
+        )
 
     except PermissionError as error:
         return response_error(str(error), 403)
@@ -201,12 +205,12 @@ def get_inventory_transactions():
         )
 
         return response_success(
-                {
-                    "transactions": [
-                        serialize_inventory_transaction(transaction)
-                        for transaction in transactions
-                    ]
-                },
+            {
+                "transactions": [
+                    serialize_inventory_transaction(transaction)
+                    for transaction in transactions
+                ]
+            },
             200,
         )
 

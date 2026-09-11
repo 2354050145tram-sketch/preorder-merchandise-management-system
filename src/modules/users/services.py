@@ -123,8 +123,6 @@ class UserService:
         valid_providers = [
             "GOOGLE",
             "FACEBOOK",
-            "INSTAGRAM",
-            "X",
         ]
 
         if provider not in valid_providers:

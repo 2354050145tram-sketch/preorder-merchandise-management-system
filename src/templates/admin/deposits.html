@@ -1,11 +1,11 @@
 {% extends "layouts/admin_base.html" %}
 
-{% block title %}Duyệt nạp Ví Verd - Verdia Admin{% endblock %}
+{% block title %}Duyệt giao dịch Ví Verd - Verdia Admin{% endblock %}
 
 {% block breadcrumb %}
 <span>Ví Verd</span>
 <i class='bx bx-chevron-right'></i>
-<strong>Duyệt nạp tiền</strong>
+<strong>Duyệt nạp/rút tiền</strong>
 {% endblock %}
 
 {% block control_panel %}
@@ -16,11 +16,22 @@
         </button>
     </div>
 
+    <select id="wallet-request-type" class="admin-select">
+        <option value="deposits">
+            Yêu cầu nạp tiền
+        </option>
+
+        <option value="withdrawals">
+            Yêu cầu rút tiền
+        </option>
+    </select>
+
     <div class="admin-control-right">
         <select id="deposit-status-filter" class="admin-select">
             <option value="">Tất cả trạng thái</option>
-            <option value="CHỜ XỬ LÝ" selected>Chờ xử lý (Chưa duyệt)</option>
-            <option value="THÀNH CÔNG">Thành công (Đã duyệt)</option>
+            <option value="CHỜ XỬ LÝ" selected>Chờ xử lý</option>
+            <option value="THÀNH CÔNG">Thành công</option>
+            <option value="THẤT BẠI">Thất bại</option>
             <option value="ĐÃ HỦY">Đã hủy (Khách hủy)</option>
         </select>
     </div>
@@ -36,8 +47,8 @@
                     <tr>
                         <th style="width: 10%;">Mã GD</th>
                         <th style="width: 25%;">Khách hàng</th>
-                        <th style="width: 15%;">Số tiền nạp</th>
-                        <th style="width: 20%;">Mã chuyển khoản (Nội dung)</th>
+                        <th id="wallet-amount-heading" style="width: 15%;">Số tiền nạp</th>
+                        <th id="wallet-info-heading" style="width: 20%;">Mã chuyển khoản / Nội dung</th>
                         <th style="width: 15%;">Thời gian</th>
                         <th style="width: 15%; text-align: center;">Thao tác</th>
                     </tr>
@@ -56,91 +67,437 @@
 {% block extra_js %}
 <script>
     function getAdminToken() {
-        return localStorage.getItem("access_token") || localStorage.getItem("token");
+        return (
+            localStorage.getItem("access_token")
+            || localStorage.getItem("token")
+            || sessionStorage.getItem("access_token")
+            || sessionStorage.getItem("token")
+        );
     }
 
-    function formatPrice(val) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
+    function formatPrice(value) {
+        return new Intl.NumberFormat(
+            "vi-VN",
+            {
+                style: "currency",
+                currency: "VND"
+            }
+        ).format(value || 0);
     }
 
-    async function loadDeposits() {
-        const tbody = document.getElementById("admin-deposits-table-body");
-        const status = document.getElementById("deposit-status-filter").value;
+    function escapeHTML(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    async function loadWalletRequests() {
+        const tbody = document.getElementById(
+            "admin-deposits-table-body"
+        );
+
+        const requestType = document.getElementById(
+            "wallet-request-type"
+        ).value;
+
+        const status = document.getElementById(
+            "deposit-status-filter"
+        ).value;
+
+        const amountHeading = document.getElementById(
+            "wallet-amount-heading"
+        );
+
+        const infoHeading = document.getElementById(
+            "wallet-info-heading"
+        );
+
+        const isWithdrawal = (
+            requestType === "withdrawals"
+        );
+
+        amountHeading.textContent = (
+            isWithdrawal
+                ? "Số tiền rút"
+                : "Số tiền nạp"
+        );
+
+        infoHeading.textContent = (
+            isWithdrawal
+                ? "Thông tin rút tiền"
+                : "Mã chuyển khoản / Nội dung"
+        );
+
+        tbody.innerHTML = `
+            <tr>
+                <td
+                    colspan="6"
+                    style="
+                        text-align: center;
+                        padding: 20px;
+                    "
+                >
+                    Đang tải dữ liệu...
+                </td>
+            </tr>
+        `;
+
         const token = getAdminToken();
 
+        const endpoint = (
+            `/api/wallets/admin/${requestType}`
+            + `?status=${encodeURIComponent(status)}`
+        );
+
         try {
-            const res = await fetch(`/api/wallets/admin/deposits?status=${encodeURIComponent(status)}`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            const result = await res.json();
-            const list = result.data?.deposits || [];
+            const response = await fetch(
+                endpoint,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message
+                    || "Không thể tải dữ liệu"
+                );
+            }
+
+            const list = isWithdrawal
+                ? result.data?.withdrawals || []
+                : result.data?.deposits || [];
 
             if (!list.length) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #6b7280; padding: 20px;">Không có yêu cầu nạp tiền nào.</td></tr>`;
+                tbody.innerHTML = `
+                    <tr>
+                        <td
+                            colspan="6"
+                            style="
+                                text-align: center;
+                                color: #6b7280;
+                                padding: 20px;
+                            "
+                        >
+                            Không có yêu cầu
+                            ${isWithdrawal ? "rút" : "nạp"}
+                            tiền nào.
+                        </td>
+                    </tr>
+                `;
+
                 return;
             }
 
             tbody.innerHTML = list.map(item => {
-                let statusBadge = "";
-                let actionBtn = "";
+                let actionHTML = "";
 
-                if (item.transaction_status === "CHỜ XỬ LÝ") {
-                    statusBadge = `<span class="admin-product-status cho-xac-nhan">CHỜ DUYỆT</span>`;
-                    actionBtn = `
-                    <button type="button" class="admin-btn admin-btn-primary" style="padding: 4px 10px; font-size: 12px;" onclick="approveDeposit(${item.wallet_transaction_id})">
-                        <i class='bx bx-check'></i> Duyệt nạp tiền
-                    </button>
-                `;
-                } else if (item.transaction_status === "THÀNH CÔNG") {
-                    statusBadge = `<span class="admin-product-status hoan-thanh">THÀNH CÔNG</span>`;
-                    actionBtn = `<span style="color: #16a34a; font-size: 12px; font-weight: 600;"><i class='bx bx-check-double'></i> Đã cộng ví</span>`;
-                } else if (item.transaction_status === "ĐÃ HỦY") {
-                    statusBadge = `<span class="admin-product-status da-huy">ĐÃ HỦY</span>`;
-                    actionBtn = `<span style="color: #dc2626; font-size: 12px;">Khách đã hủy</span>`;
+                if (
+                    item.transaction_status
+                    === "CHỜ XỬ LÝ"
+                ) {
+                    const buttonText = isWithdrawal
+                        ? "Duyệt rút tiền"
+                        : "Duyệt nạp tiền";
+
+                    const buttonIcon = isWithdrawal
+                        ? "bx-money-withdraw"
+                        : "bx-check";
+
+                    const functionName = isWithdrawal
+                        ? "approveWithdrawal"
+                        : "approveDeposit";
+
+                    actionHTML = `
+                        <button
+                            type="button"
+                            class="
+                                admin-btn
+                                admin-btn-primary
+                            "
+                            style="
+                                padding: 5px 10px;
+                                font-size: 12px;
+                            "
+                            onclick="
+                                ${functionName}(
+                                    ${item.wallet_transaction_id}
+                                )
+                            "
+                        >
+                            <i class='bx ${buttonIcon}'></i>
+                            ${buttonText}
+                        </button>
+                    `;
+                } else if (
+                    item.transaction_status
+                    === "THÀNH CÔNG"
+                ) {
+                    actionHTML = `
+                        <span
+                            style="
+                                color: #16a34a;
+                                font-size: 12px;
+                                font-weight: 600;
+                            "
+                        >
+                            <i class='bx bx-check-double'></i>
+
+                            ${isWithdrawal
+                            ? "Đã trừ ví"
+                            : "Đã cộng ví"
+                        }
+                        </span>
+                    `;
+                } else if (
+                    item.transaction_status
+                    === "THẤT BẠI"
+                ) {
+                    actionHTML = `
+                        <span
+                            style="
+                                color: #dc2626;
+                                font-size: 12px;
+                                font-weight: 600;
+                            "
+                        >
+                            Không đủ số dư
+                        </span>
+                    `;
+                } else {
+                    actionHTML = `
+                        <span
+                            style="
+                                color: #6b7280;
+                                font-size: 12px;
+                            "
+                        >
+                            Đã hủy
+                        </span>
+                    `;
                 }
 
+                const amountColor = isWithdrawal
+                    ? "#dc2626"
+                    : "#16a34a";
+
+                const amountSign = isWithdrawal
+                    ? "−"
+                    : "+";
+
+                const description = escapeHTML(
+                    item.description || "—"
+                );
+
+                const transactionCode = escapeHTML(
+                    item.transaction_code || "—"
+                );
+
+                const createdAt = item.created_at
+                    ? item.created_at
+                        .replace("T", " ")
+                        .slice(0, 19)
+                    : "—";
+
                 return `
+                    <tr>
+                        <td>
+                            <strong>
+                                #${item.wallet_transaction_id}
+                            </strong>
+                        </td>
+
+                        <td>
+                            <strong>
+                                ${escapeHTML(item.username)}
+                            </strong>
+
+                            <div
+                                style="
+                                    font-size: 11px;
+                                    color: #6b7280;
+                                "
+                            >
+                                ${escapeHTML(item.email)}
+                            </div>
+                        </td>
+
+                        <td
+                            style="
+                                font-weight: 700;
+                                color: ${amountColor};
+                                font-size: 14px;
+                            "
+                        >
+                            ${amountSign}${formatPrice(
+                    item.amount
+                )}
+                        </td>
+
+                        <td>
+                            <strong
+                                style="
+                                    color: ${isWithdrawal
+                        ? "#374151"
+                        : "#dc2626"
+                    };
+                                "
+                            >
+                                ${transactionCode}
+                            </strong>
+
+                            <div
+                                style="
+                                    margin-top: 4px;
+                                    color: #6b7280;
+                                    font-size: 11px;
+                                    white-space: normal;
+                                "
+                            >
+                                ${description}
+                            </div>
+                        </td>
+
+                        <td
+                            style="
+                                font-size: 12px;
+                                color: #6b7280;
+                            "
+                        >
+                            ${createdAt}
+                        </td>
+
+                        <td style="text-align: center;">
+                            ${actionHTML}
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+        } catch (error) {
+            tbody.innerHTML = `
                 <tr>
-                    <td><strong>#${item.wallet_transaction_id}</strong></td>
-                    <td>
-                        <strong>${item.username}</strong>
-                        <div style="font-size: 11px; color: #6b7280;">${item.email}</div>
+                    <td
+                        colspan="6"
+                        style="
+                            text-align: center;
+                            color: #dc2626;
+                            padding: 20px;
+                        "
+                    >
+                        ${escapeHTML(
+                error.message
+                || "Lỗi tải dữ liệu"
+            )}
                     </td>
-                    <td style="font-weight: 700; color: #16a34a; font-size: 14px;">+${formatPrice(item.amount)}</td>
-                    <td><strong style="color: #dc2626;">${item.transaction_code}</strong></td>
-                    <td style="font-size: 12px; color: #6b7280;">${item.created_at ? item.created_at.replace('T', ' ').slice(0, 19) : '—'}</td>
-                    <td style="text-align: center;">${actionBtn}</td>
                 </tr>
             `;
-            }).join("");
-        } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red; padding: 20px;">Lỗi tải dữ liệu.</td></tr>`;
         }
     }
 
-    async function approveDeposit(transId) {
-        if (!confirm(`Xác nhận duyệt nạp tiền cho giao dịch #${transId}? Số dư ví của khách sẽ được cộng ngay lập tức.`)) return;
+    async function approveDeposit(transactionId) {
+        if (
+            !confirm(
+                `Xác nhận duyệt nạp tiền cho giao dịch #${transactionId}? Số dư khách hàng sẽ được cộng ngay.`
+            )
+        ) {
+            return;
+        }
+
+        await approveWalletRequest(
+            transactionId,
+            "deposits",
+            "Duyệt nạp tiền thành công. Đã cộng số dư cho khách hàng."
+        );
+    }
+
+    async function approveWithdrawal(transactionId) {
+        if (
+            !confirm(
+                `Xác nhận đã chuyển tiền cho khách và duyệt giao dịch rút #${transactionId}? Số tiền sẽ được trừ khỏi Ví Verd.`
+            )
+        ) {
+            return;
+        }
+
+        await approveWalletRequest(
+            transactionId,
+            "withdrawals",
+            "Duyệt rút tiền thành công. Đã trừ số dư Ví Verd."
+        );
+    }
+
+    async function approveWalletRequest(
+        transactionId,
+        requestType,
+        successMessage
+    ) {
         const token = getAdminToken();
 
         try {
-            const res = await fetch(`/api/wallets/admin/deposits/${transId}/approve`, {
-                method: "PUT",
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            const result = await res.json();
-            if (!res.ok) throw new Error(result.message || "Không thể duyệt nạp tiền");
+            const response = await fetch(
+                `/api/wallets/admin/${requestType}/${transactionId}/approve`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                }
+            );
 
-            alert("Duyệt nạp tiền thành công! Đã cộng số dư cho khách hàng.");
-            loadDeposits();
-        } catch (e) {
-            alert(e.message);
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message
+                    || "Không thể duyệt giao dịch"
+                );
+            }
+
+            alert(successMessage);
+
+            await loadWalletRequests();
+
+        } catch (error) {
+            alert(
+                error.message
+                || "Có lỗi xảy ra khi duyệt giao dịch"
+            );
         }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        loadDeposits();
-        document.getElementById("reload-deposits-btn")?.addEventListener("click", loadDeposits);
-        document.getElementById("deposit-status-filter")?.addEventListener("change", loadDeposits);
-    });
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+            loadWalletRequests();
+
+            document.getElementById(
+                "reload-deposits-btn"
+            )?.addEventListener(
+                "click",
+                loadWalletRequests
+            );
+
+            document.getElementById(
+                "wallet-request-type"
+            )?.addEventListener(
+                "change",
+                loadWalletRequests
+            );
+
+            document.getElementById(
+                "deposit-status-filter"
+            )?.addEventListener(
+                "change",
+                loadWalletRequests
+            );
+        }
+    );
 </script>
 {% endblock %}

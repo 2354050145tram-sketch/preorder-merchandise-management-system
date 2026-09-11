@@ -66,6 +66,47 @@ const closeFilterBtn =
 let currentProducts = [];
 
 let hasSearchOrFilter = false;
+let searchTimer = null;
+
+searchBtn.addEventListener(
+    "click",
+    () => {
+        clearTimeout(searchTimer);
+
+        hasSearchOrFilter = true;
+
+        loadProducts();
+    }
+);
+
+keywordInput.addEventListener(
+    "keydown",
+    event => {
+        if (event.key === "Enter") {
+            clearTimeout(searchTimer);
+
+            hasSearchOrFilter = true;
+
+            loadProducts();
+        }
+    }
+);
+
+keywordInput.addEventListener(
+    "input",
+    () => {
+        clearTimeout(searchTimer);
+
+        searchTimer = setTimeout(
+            () => {
+                hasSearchOrFilter = true;
+
+                loadProducts();
+            },
+            250
+        );
+    }
+);
 
 async function restoreOAuthLogin() {
     if (
@@ -146,11 +187,47 @@ function formatPrice(price) {
         .toLocaleString("vi-VN") + "đ";
 }
 
+function isProductUnavailable(product) {
+    if (product.status === "IN_STOCK") {
+        return Number(
+            product.inventory_quantity || 0
+        ) <= 0;
+    }
+
+    if (product.status === "PREORDER") {
+        return !product.preorder_available;
+    }
+
+    return true;
+}
+
+function getUnavailableMessage(product) {
+    if (product.status === "IN_STOCK") {
+        return "Sản phẩm đã hết hàng";
+    }
+
+    if (product.status === "PREORDER") {
+        return "Đợt preorder hiện không mở";
+    }
+
+    return "Sản phẩm hiện không thể mua";
+}
+
 function getStatus(product) {
     if (
-        product.status
-        === "PREORDER"
+        product.status === "IN_STOCK"
+        && Number(
+            product.inventory_quantity || 0
+        ) <= 0
     ) {
+        return `
+            <span class="product-status out-of-stock">
+                Hết hàng
+            </span>
+        `;
+    }
+
+    if (product.status === "PREORDER") {
         return `
             <span class="product-status preorder">
                 Pre-order
@@ -261,6 +338,9 @@ function renderProducts(products) {
         card.className =
             "product-card";
 
+        const unavailable =
+            isProductUnavailable(product);
+
 
         card.innerHTML = `
             <div class="product-image">
@@ -290,19 +370,14 @@ function renderProducts(products) {
 
                 <button
                     class="add-cart
-                        ${product.status === "PREORDER"
-                && !product.preorder_available
-                ? "disabled"
-                : ""
-            }
+                        ${unavailable ? "disabled" : ""}
                     "
                     type="button"
-
-                    ${product.status === "PREORDER"
-                && !product.preorder_available
-                ? "disabled"
-                : ""
-            }
+                    ${unavailable ? "disabled" : ""}
+                    title="${unavailable
+                ? getUnavailableMessage(product)
+                : "Thêm vào giỏ hàng"
+            }"
                 >
                     <i class='bx bx-cart-add'></i>
                 </button>
@@ -439,10 +514,11 @@ function renderProducts(products) {
 
 
 
-                if (
-                    product.status === "PREORDER"
-                    && !product.preorder_available
-                ) {
+                if (isProductUnavailable(product)) {
+                    alert(
+                        getUnavailableMessage(product)
+                    );
+
                     return;
                 }
 
@@ -502,12 +578,38 @@ function renderProducts(products) {
 
 
                 if (existingItem) {
+                    if (
+                        product.status === "IN_STOCK"
+                        && existingItem.quantity + 1
+                        > Number(
+                            product.inventory_quantity || 0
+                        )
+                    ) {
+                        alert(
+                            `Số lượng không đủ. Kho chỉ còn ${Number(
+                                product.inventory_quantity || 0
+                            )
+                            } sản phẩm.`
+                        );
+
+                        return;
+                    }
 
                     existingItem.quantity += 1;
 
-                    if (
-                        product.status === "PREORDER"
-                    ) {
+                    existingItem.inventory_quantity =
+                        product.inventory_quantity;
+
+                    existingItem.preorder_available =
+                        product.preorder_available;
+
+                    existingItem.product_active =
+                        product.active !== false;
+
+                    existingItem.availability_checked =
+                        true;
+
+                    if (product.status === "PREORDER") {
                         existingItem.preorder_id =
                             product.preorder_id;
                     }
@@ -534,6 +636,18 @@ function renderProducts(products) {
 
                         status:
                             product.status,
+
+                        inventory_quantity:
+                            product.inventory_quantity,
+
+                        preorder_available:
+                            product.preorder_available,
+
+                        product_active:
+                            product.active !== false,
+
+                        availability_checked:
+                            true,
 
                         preorder_id:
                             product.status === "PREORDER"
@@ -1132,27 +1246,6 @@ function applySort() {
         products
     );
 }
-
-searchBtn.addEventListener(
-    "click",
-    () => {
-        hasSearchOrFilter = true;
-
-        loadProducts();
-    }
-);
-
-
-keywordInput.addEventListener(
-    "keydown",
-    event => {
-        if (event.key === "Enter") {
-            hasSearchOrFilter = true;
-
-            loadProducts();
-        }
-    }
-);
 
 applyFilterBtn.addEventListener(
     "click",

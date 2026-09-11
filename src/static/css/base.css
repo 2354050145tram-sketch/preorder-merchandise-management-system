@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700;800&display=swap");
 
 :root {
     --cream: #fffaf3;
@@ -20,7 +20,7 @@
 
 * {
     box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
+    font-family: "Saira", sans-serif;
 }
 
 
@@ -29,7 +29,7 @@ body {
     margin: 0;
     padding: 0;
 
-    font-family: "Poppins", sans-serif;
+    font-family: "Saira", sans-serif;
     color: var(--text);
 }
 
@@ -38,7 +38,7 @@ button,
 input,
 select,
 textarea {
-    font-family: "Poppins", sans-serif;
+    font-family: "Saira", sans-serif;
 }
 
 .header.shared-header {

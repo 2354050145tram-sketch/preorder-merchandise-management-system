@@ -70,7 +70,7 @@ class Payment(db.Model):
     payment_id = Column(Integer, primary_key=True, autoincrement=True)
     order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)
     amount = Column(DECIMAL(8, 2), nullable=False)
-    payment_method = Column(Enum("MOMO", "VÍ VERD"), nullable=False)
+    payment_method = Column(Enum("TPBANK", "VÍ VERD"), nullable=False)
     payment_type = Column(Enum("THANH TOÁN FULL", "ĐẶT CỌC", "THANH TOÁN CÒN LẠI"), nullable=False, default="THANH TOÁN FULL")
     payment_status = Column(Enum("ĐANG THANH TOÁN", "ĐÃ THANH TOÁN", "ĐÃ HỦY", "ĐÃ HOÀN TIỀN"), nullable=False)
     transaction_id = Column(String(255), nullable=False, unique=True)

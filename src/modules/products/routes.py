@@ -1,25 +1,12 @@
-from flask import (
-    Blueprint,
-    request,
-)
-
-from flask_jwt_extended import (
-    jwt_required,
-)
-
-from modules.products.services import (
-    ProductService,
-)
-
-from modules.products.helpers import (
-    serialize_product,
-    check_admin,
-)
-
-from utils.helpers import (
-    response_success,
-    response_error,
-)
+from flask import Blueprint, request
+from pathlib import Path
+from uuid import uuid4
+from flask import current_app, url_for
+from werkzeug.utils import secure_filename
+from flask_jwt_extended import jwt_required
+from modules.products.services import ProductService
+from modules.products.helpers import serialize_product, check_admin
+from utils.helpers import response_success, response_error
 
 product_bp = Blueprint(
     "products",
@@ -116,6 +103,69 @@ def get_product_by_id(product_id):
             500,
         )
 
+
+@product_bp.route(
+    "/admin/upload-image",
+    methods=["POST"],
+)
+@jwt_required()
+def upload_product_image():
+    try:
+        check_admin()
+
+        image_file = request.files.get("image")
+
+        if not image_file or not image_file.filename:
+            raise ValueError("Vui lòng chọn ảnh")
+
+        filename = secure_filename(image_file.filename)
+        extension = Path(filename).suffix.lower()
+
+        if extension not in {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+            ".gif",
+            ".avif",
+        }:
+            raise ValueError("Định dạng ảnh không được hỗ trợ")
+
+        upload_folder = Path(current_app.static_folder) / "uploads" / "products"
+
+        upload_folder.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        stored_filename = f"{uuid4().hex}{extension}"
+
+        image_file.save(str(upload_folder / stored_filename))
+
+        image_url = url_for(
+            "static",
+            filename=f"uploads/products/{stored_filename}",
+        )
+
+        return response_success(
+            {"image_url": image_url},
+            "Tải ảnh thành công",
+            201,
+        )
+
+    except PermissionError as error:
+        return response_error(str(error), 403)
+
+    except ValueError as error:
+        return response_error(str(error), 400)
+
+    except Exception as error:
+        print("UPLOAD IMAGE ERROR:", error)
+
+        return response_error(
+            "Có lỗi xảy ra khi đổi ảnh",
+            500,
+        )
 
 @product_bp.route(
     "/admin",
