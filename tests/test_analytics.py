@@ -81,10 +81,12 @@ class NotificationTests(DatabaseTestCase, unittest.TestCase):
             ],
         )
         with patch("modules.notifications.services.send_email") as mocked_send:
-            notification = NotificationService.send_preorder_notification(
-                self.seed["preorder"].preorder_id, " Update ", " Production "
+            result = NotificationService.send_preorder_notification(
+                self.seed["preorder"].preorder_id,
+                " Update ",
+                " Production ",
             )
-            notification = result["notification"]
+        notification = result["notification"]
         self.assertIsNotNone(notification)
         mocked_send.assert_called_once()
         self.assertEqual(UserNotification.query.count(), 1)
@@ -94,7 +96,6 @@ class NotificationTests(DatabaseTestCase, unittest.TestCase):
             ],
             notification,
         )
-
     def test_notification_no_customer_and_validation(self):
         self.assertIsNone(
             NotificationService.send_preorder_notification(
@@ -109,7 +110,6 @@ class NotificationTests(DatabaseTestCase, unittest.TestCase):
             )
         with self.assertRaises(ValueError):
             NotificationService.get_user_notifications(999)
-
     def test_email_failure_does_not_rollback_notification(self):
         OrderService.create_order(
             self.seed["customer"].user_id,
