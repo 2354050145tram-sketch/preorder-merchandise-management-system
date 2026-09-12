@@ -1,11 +1,11 @@
 # preorder-merchandise-management-system
 
 ## Mô tả
-Ứng dụng web quản lý dịch vụ pre-order merchandise được phát triển theo quy trình Agile. Hệ thống hỗ trợ quản lý sản phẩm, đơn đặt trước, khách hàng, đơn hàng và phân quyền người dùng sử dụng Django REST framework (viết tắt là DRF). Hệ thống được xây dựng theo mô hình Client–Server, trong đó Backend (Django) cung cấp RESTful API và Frontend (ReactJS) giao tiếp thông qua HTTP requests.
+Ứng dụng web quản lý dịch vụ pre-order merchandise là hệ thống hỗ trợ quản lý sản phẩm, đơn đặt trước, khách hàng, đơn hàng và phân quyền người dùng. Hệ thống được xây dựng theo mô hình Client–Server, trong đó Backend (Python FLask) cung cấp API và Frontend (HTML, CSS, JavaScript) giao tiếp thông qua HTTP requests.
 
 ## Công nghệ sử dụng
-- Backend: Python (Django, RESTful API)
-- Frontend: ReactJS
+- Backend: Python Flask
+- Frontend: HTML, CSS, JavaScript
 - Database: MySQL
 
 ## Cài đặt và chạy
@@ -14,11 +14,11 @@
 ```bash
 cd backend
 
-# Tạo môi trường ảo (virtual environment)
+# Tạo môi trường ảo
 python -m venv venv
 
 # Kích hoạt môi trường
-source venv/bin/activate   # Windows: venv\Scripts\activate
+venv\Scripts\activate
 
 # Cài dependencies
 pip install -r requirements.txt
@@ -28,26 +28,12 @@ cd src
 python manage.py makemigrations
 python manage.py migrate
 
-# Chạy server
-python manage.py runserver_plus --cert-file cert.crt --key-file cert.key
-```
-
-### Chạy Frontend
-```bash
-cd frontend
-
-# Cài dependencies
-npm install
-
-# Chạy development server
-npm run dev
-```
 
 ### Chạy test report 
 ```bash
-### BACKEND DJANGO
+### BACKEND
 # Cài dependencies
 pip install -r requirements.txt
 
 # Chạy test report
-pytest -q --cov=src --cov-report=term-missing
+python -m pytest -q --cov=src/modules --cov=src/utils --cov-report=term-missing --cov-report=html

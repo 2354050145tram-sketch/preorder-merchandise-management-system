@@ -182,7 +182,7 @@ class WalletRouteTests(DatabaseTestCase, unittest.TestCase):
             200,
         )
         withdrawal = self.client.post(
-            "/api/wallets/withdraw", json={"amount": 10000}, headers=customer
+            "/api/wallets/withdraw", json={"amount": 60000}, headers=customer
         )
         self.assertEqual(withdrawal.status_code, 201)
         withdrawal_id = withdrawal.get_json()["data"]["transaction"]["wallet_transaction_id"]

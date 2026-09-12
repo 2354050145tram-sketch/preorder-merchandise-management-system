@@ -115,7 +115,7 @@ class UserRouteTests(DatabaseTestCase, unittest.TestCase):
             customer_id,
             [{"product_id": self.seed["stock_product"].product_id, "preorder_id": None, "quantity": 1}],
         )
-        WalletService.create_deposit_request(customer_id, 1000, "detail route")
+        WalletService.create_deposit_request(customer_id, 20000, "detail route")
         response = self.client.get(
             f"/api/users/admin/{customer_id}", headers=self.access_headers("admin")
         )

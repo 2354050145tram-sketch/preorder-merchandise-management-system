@@ -259,7 +259,7 @@ class WalletServiceTests(OrderMixin, DatabaseTestCase, unittest.TestCase):
     def test_deposit_withdraw_and_filters(self):
         uid = self.seed["customer"].user_id
         wallet = WalletService.get_wallet_by_user(uid)
-        deposit = WalletService.create_deposit_request(uid, 50000, "Nạp test")
+        deposit = WalletService.create_deposit_request(uid, 60000, "Nạp test")
         self.assertEqual(WalletService.get_deposit_by_id(uid, deposit.wallet_transaction_id), deposit)
         approved = WalletService.approve_deposit(deposit.wallet_transaction_id)
         self.assertEqual(approved.transaction_status, "THÀNH CÔNG")
@@ -267,13 +267,13 @@ class WalletServiceTests(OrderMixin, DatabaseTestCase, unittest.TestCase):
         withdraw = WalletService.create_withdraw_request(uid, 50000)
         approved_w = WalletService.approve_withdraw(withdraw.wallet_transaction_id)
         self.assertEqual(approved_w.transaction_status, "THÀNH CÔNG")
-        self.assertEqual(wallet.balance, Decimal("500000"))
+        self.assertEqual(wallet.balance, Decimal("490000"))
         self.assertTrue(WalletService.get_transactions(uid, "NẠP TIỀN", "THÀNH CÔNG"))
         self.assertTrue(WalletService.get_all_deposits_admin("THÀNH CÔNG"))
 
     def test_cancel_deposit_and_wallet_validations(self):
         uid = self.seed["customer"].user_id
-        deposit = WalletService.create_deposit_request(uid, 1000)
+        deposit = WalletService.create_deposit_request(uid, 20000)
         self.assertEqual(WalletService.cancel_deposit_request(uid, deposit.wallet_transaction_id).transaction_status, "ĐÃ HỦY")
         for fn, args in [
             (WalletService.create_deposit_request, (uid, "bad")),
@@ -318,12 +318,12 @@ class WalletServiceTests(OrderMixin, DatabaseTestCase, unittest.TestCase):
 
     def test_wallet_approval_and_payment_error_branches(self):
         uid = self.seed["customer"].user_id
-        deposit = WalletService.create_deposit_request(uid, 1000)
+        deposit = WalletService.create_deposit_request(uid, 20000)
         WalletService.approve_deposit(deposit.wallet_transaction_id)
         with self.assertRaisesRegex(ValueError, "đã được xử lý"):
             WalletService.approve_deposit(deposit.wallet_transaction_id)
 
-        withdrawal = WalletService.create_withdraw_request(uid, 1000)
+        withdrawal = WalletService.create_withdraw_request(uid, 60000)
         WalletService.approve_withdraw(withdrawal.wallet_transaction_id)
         with self.assertRaisesRegex(ValueError, "đã được xử lý"):
             WalletService.approve_withdraw(withdrawal.wallet_transaction_id)
